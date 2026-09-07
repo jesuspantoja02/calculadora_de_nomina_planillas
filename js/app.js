@@ -1,23 +1,22 @@
 /* ==========================================================================
    Employee Payroll Management — app.js
-   Semana 1: estructuras de control, eventos, try-catch
-   Semana 2: operadores matematicos/asignacion, Math
-   Semana 3: cadenas, regex, template literals (interpolacion)
-   Semana 4: clases y objetos, arreglos, forEach/map/filter/find/reduce, JSON
+   Módulo 1: Registrar Empleado (alta + lista con eliminar)
+   Módulo 2: Procesar Pago (cálculo y emisión inmediata de boleta)
+   Módulo 3: Boletas de Pago (historial con filtros por fecha / nombre-DNI)
    ========================================================================== */
 
-/* ---------------------- CONFIGURACION (editable en Semana "Configuracion") ---------------------- */
+/* ---------------------- CONFIGURACION (editable en "Configuración") ---------------------- */
 const CONFIG_DEFAULT = {
   tasaAfp: 12,       // %
   tasaOnp: 13,       // %
   tasaSalud: 9,      // %
-  valorHoraExtra: 10,// $ por hora
+  valorHoraExtra: 10,// S/ por hora
   tasaImpuesto: 5,   // % Impuesto a la Renta
   empresaNombre: "Mi Empresa S.A.C.",
   empresaRuc: "20123456789"
 };
 
-/* ---------------------- COLOR POR EMPLEADO (Semana 3: cadenas -> hash) ---------------------- */
+/* ---------------------- COLOR / INICIALES ---------------------- */
 function colorFromString(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -27,7 +26,6 @@ function colorFromString(str) {
   return `hsl(${hue}, 42%, 38%)`;
 }
 
-// Iniciales de la empresa para el "logo" de la boleta (Semana 3: metodos de cadenas)
 function inicialesEmpresa(nombre) {
   return nombre
     .trim()
@@ -38,103 +36,79 @@ function inicialesEmpresa(nombre) {
     .join("") || "EM";
 }
 
-/* ---------------------- CLASES (Semana 4) ---------------------- */
+function iniciales(nombre) {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(p => p.charAt(0).toUpperCase())
+    .join("");
+}
 
+function avatarUrl(dniOrId) {
+  return `https://i.pravatar.cc/80?u=${dniOrId}`;
+}
+
+/* ---------------------- MODELO: EMPLEADO ----------------------
+   Datos de alta del Módulo 1 (Registrar Empleado). Ya no incluye horas
+   extra, fecha ni modalidad de pago: eso se define por cada pago
+   individual en el Módulo 2 (Procesar Pago). */
 class Empleado {
-  constructor(nombre, dni, cargo, sueldoBase, horasExtra, regimen) {
-    this.id = Date.now() + Math.floor(Math.random() * 1000); // id unico
-    this.nombre = nombre;
+  constructor(dni, nombre, cargo, sueldoBase, regimen) {
+    this.id = Date.now() + Math.floor(Math.random() * 1000);
     this.dni = dni;
+    this.nombre = nombre;
     this.cargo = cargo;
     this.sueldoBase = Number(sueldoBase);
-    this.horasExtra = Number(horasExtra);
     this.regimen = regimen; // 'AFP' | 'ONP'
   }
 
-  // Semana 2: operadores matematicos y de asignacion
-  calcularBruto(config) {
-    let bruto = this.sueldoBase + this.horasExtra * config.valorHoraExtra;
-    return Math.round(bruto * 100) / 100; // redondeo a 2 decimales
-  }
-
   calcularDescuentos(config) {
-    const bruto = this.calcularBruto(config);
     const tasaPension = this.regimen === "AFP" ? config.tasaAfp : config.tasaOnp;
-
-    const descPension = Math.round(bruto * (tasaPension / 100) * 100) / 100;
-    const descSalud = Math.round(bruto * (config.tasaSalud / 100) * 100) / 100;
-    const descImpuesto = Math.round(bruto * (config.tasaImpuesto / 100) * 100) / 100;
-    const total = descPension + descSalud + descImpuesto;
-
-    return {
-      pension: descPension,
-      salud: descSalud,
-      impuesto: descImpuesto,
-      total: Math.round(total * 100) / 100
-    };
+    const pension = Math.round(this.sueldoBase * (tasaPension / 100) * 100) / 100;
+    const salud = Math.round(this.sueldoBase * (config.tasaSalud / 100) * 100) / 100;
+    const impuesto = Math.round(this.sueldoBase * (config.tasaImpuesto / 100) * 100) / 100;
+    const total = Math.round((pension + salud + impuesto) * 100) / 100;
+    return { pension, salud, impuesto, total };
   }
 
   calcularNeto(config) {
-    const bruto = this.calcularBruto(config);
     const desc = this.calcularDescuentos(config);
-    // Math.max evita que el sueldo neto sea negativo
-    return Math.max(0, Math.round((bruto - desc.total) * 100) / 100);
+    return Math.max(0, Math.round((this.sueldoBase - desc.total) * 100) / 100);
   }
 
-  iniciales() {
-    // Semana 3: metodos de cadenas
-    return this.nombre
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map(p => p.charAt(0).toUpperCase())
-      .join("");
-  }
-
-  // Foto consistente por empleado (misma persona = misma foto siempre)
-  avatarUrl() {
-    return `https://i.pravatar.cc/80?u=${this.dni || this.id}`;
-  }
+  iniciales() { return iniciales(this.nombre); }
+  avatarUrl() { return avatarUrl(this.dni || this.id); }
 }
 
 class Planilla {
   constructor() {
-    this.empleados = []; // arreglo de instancias Empleado
+    this.empleados = [];
   }
 
-  agregar(empleado) {
-    this.empleados.push(empleado);
-  }
+  agregar(empleado) { this.empleados.push(empleado); }
 
-  eliminar(id) {
-    // Semana 4: filter
-    this.empleados = this.empleados.filter(e => e.id !== id);
-  }
+  eliminar(id) { this.empleados = this.empleados.filter(e => e.id !== id); }
 
-  obtener(id) {
-    // Semana 4: find
-    return this.empleados.find(e => e.id === id);
-  }
+  obtener(id) { return this.empleados.find(e => e.id === id); }
+
+  obtenerPorDni(dni) { return this.empleados.find(e => e.dni === dni); }
 
   filtrar({ cargo, min, max, regimen }, config) {
     return this.empleados.filter(e => {
       const cargoOk = !cargo || e.cargo === cargo;
       const regimenOk = !regimen || e.regimen === regimen;
-      const bruto = e.calcularBruto(config);
+      const bruto = e.sueldoBase;
       const minOk = min === null || isNaN(min) ? true : bruto >= min;
       const maxOk = max === null || isNaN(max) ? true : bruto <= max;
       return cargoOk && regimenOk && minOk && maxOk;
     });
   }
 
-  cargosUnicos() {
-    // Semana 4: Map/Set para valores unicos
-    return [...new Set(this.empleados.map(e => e.cargo))];
-  }
+  cargosUnicos() { return [...new Set(this.empleados.map(e => e.cargo))]; }
 
   totales(config) {
-    // Semana 4: reduce
-    const bruto = this.empleados.reduce((acc, e) => acc + e.calcularBruto(config), 0);
+    const bruto = this.empleados.reduce((acc, e) => acc + e.sueldoBase, 0);
     const descuentos = this.empleados.reduce((acc, e) => acc + e.calcularDescuentos(config).total, 0);
     const neto = this.empleados.reduce((acc, e) => acc + e.calcularNeto(config), 0);
     return {
@@ -149,39 +123,28 @@ class Planilla {
     if (total === 0) return { afp: 0, onp: 0 };
     const afp = this.empleados.filter(e => e.regimen === "AFP").length;
     const onp = total - afp;
-    return {
-      afp: Math.round((afp / total) * 100),
-      onp: Math.round((onp / total) * 100)
-    };
+    return { afp: Math.round((afp / total) * 100), onp: Math.round((onp / total) * 100) };
   }
 
   mayorSueldo(config) {
     if (this.empleados.length === 0) return null;
-    // Semana 2: Math.max combinado con reduce
-    return this.empleados.reduce((max, e) =>
-      e.calcularNeto(config) > max.calcularNeto(config) ? e : max
-    );
+    return this.empleados.reduce((max, e) => (e.calcularNeto(config) > max.calcularNeto(config) ? e : max));
   }
 
   menorSueldo(config) {
     if (this.empleados.length === 0) return null;
-    return this.empleados.reduce((min, e) =>
-      e.calcularNeto(config) < min.calcularNeto(config) ? e : min
-    );
+    return this.empleados.reduce((min, e) => (e.calcularNeto(config) < min.calcularNeto(config) ? e : min));
   }
 
-  // Semana 4: JSON.stringify / JSON.parse
-  toJSON() {
-    return JSON.stringify(this.empleados);
-  }
+  toJSON() { return JSON.stringify(this.empleados); }
 
   static fromJSON(json) {
     const planilla = new Planilla();
     try {
       const data = JSON.parse(json);
       data.forEach(d => {
-        const emp = new Empleado(d.nombre, d.dni, d.cargo, d.sueldoBase, d.horasExtra, d.regimen);
-        emp.id = d.id; // conservar id original
+        const emp = new Empleado(d.dni, d.nombre, d.cargo, d.sueldoBase, d.regimen);
+        emp.id = d.id;
         planilla.agregar(emp);
       });
     } catch (error) {
@@ -191,19 +154,107 @@ class Planilla {
   }
 }
 
+/* ---------------------- MODELO: PAGO (boleta emitida) ----------------------
+   Cada registro es una "fotografía" del cálculo al momento de procesar el
+   pago: aunque luego cambien las tasas en Configuración, la boleta ya
+   emitida conserva los montos con los que se generó. */
+class Pago {
+  constructor({ empleadoId, dni, nombre, cargo, sueldoBase, regimen, fechaPago, modalidadPago, horasExtra, tardanzas }, config) {
+    this.id = Date.now() + Math.floor(Math.random() * 1000);
+    this.empleadoId = empleadoId;
+    this.dni = dni;
+    this.nombre = nombre;
+    this.cargo = cargo;
+    this.sueldoBase = Number(sueldoBase);
+    this.regimen = regimen;
+    this.fechaPago = fechaPago;
+    this.modalidadPago = modalidadPago; // 'Quincena' | 'Mensual'
+    this.horasExtra = Number(horasExtra) || 0;
+    this.tardanzas = Number(tardanzas) || 0;
+    this.valorHoraExtra = config.valorHoraExtra;
+    this.tasaPension = regimen === "AFP" ? config.tasaAfp : config.tasaOnp;
+
+    const calculo = calcularMontosPago(this);
+    this.ingresoExtra = calculo.ingresoExtra;
+    this.bruto = calculo.bruto;
+    this.adelanto = calculo.adelanto;
+    this.pension = calculo.pension;
+    this.totalDescuentos = calculo.totalDescuentos;
+    this.neto = calculo.neto;
+  }
+
+  iniciales() { return iniciales(this.nombre); }
+  avatarUrl() { return avatarUrl(this.dni || this.id); }
+}
+
+/* Lógica de cálculo (sección 5 de las especificaciones):
+   - Adelanto Quincenal (40%): únicamente 40% del sueldo básico, sin
+     descuentos de ley, sin horas extra y sin tardanzas/faltas.
+   - Fin de Mes: Bruto = Sueldo Básico + Horas Extra.
+     Neto = Bruto - Adelanto Quincenal (40%) - AFP/ONP (~13%) - Tardanzas/Faltas. */
+function calcularMontosPago(datos) {
+  const esQuincena = datos.modalidadPago === "Quincena";
+  const adelanto = Math.round(datos.sueldoBase * 0.40 * 100) / 100;
+
+  if (esQuincena) {
+    return { ingresoExtra: 0, bruto: datos.sueldoBase, adelanto: 0, pension: 0, totalDescuentos: 0, neto: adelanto };
+  }
+
+  const ingresoExtra = Math.round(datos.horasExtra * datos.valorHoraExtra * 100) / 100;
+  const bruto = Math.round((datos.sueldoBase + ingresoExtra) * 100) / 100;
+  const pension = Math.round(bruto * (datos.tasaPension / 100) * 100) / 100;
+  const tardanzas = Math.round(datos.tardanzas * 100) / 100;
+  const totalDescuentos = Math.round((adelanto + pension + tardanzas) * 100) / 100;
+  const neto = Math.max(0, Math.round((bruto - totalDescuentos) * 100) / 100);
+
+  return { ingresoExtra, bruto, adelanto, pension, totalDescuentos, neto };
+}
+
+class HistorialPagos {
+  constructor() { this.pagos = []; }
+
+  agregar(pago) { this.pagos.unshift(pago); } // el más reciente primero
+
+  obtener(id) { return this.pagos.find(p => p.id === id); }
+
+  filtrar({ fecha, texto }) {
+    const t = (texto || "").trim().toLowerCase();
+    return this.pagos.filter(p => {
+      const fechaOk = !fecha || p.fechaPago === fecha;
+      const textoOk = !t || p.nombre.toLowerCase().includes(t) || p.dni.toLowerCase().includes(t);
+      return fechaOk && textoOk;
+    });
+  }
+
+  toJSON() { return JSON.stringify(this.pagos); }
+
+  static fromJSON(json) {
+    const historial = new HistorialPagos();
+    try {
+      const data = JSON.parse(json);
+      data.forEach(d => {
+        const pago = Object.assign(Object.create(Pago.prototype), d);
+        historial.pagos.push(pago);
+      });
+    } catch (error) {
+      console.error("Error al parsear historial de pagos:", error);
+    }
+    return historial;
+  }
+}
+
 /* ---------------------- ESTADO GLOBAL ---------------------- */
 let config = cargarConfig();
 let planilla = cargarPlanilla();
-let empleadoSeleccionadoId = null;
+let historial = cargarHistorial();
 let filtroRegimenActivo = null; // 'AFP' | 'ONP' | null
+let pagoEmpleadoSeleccionado = null; // Empleado elegido en Procesar Pago
+let boletaSeleccionadaId = null; // id de Pago mostrado en Boletas de Pago
 
 /* ---------------------- PERSISTENCIA (localStorage) ---------------------- */
 function guardarPlanilla() {
-  try {
-    localStorage.setItem("planillaEmpleados", planilla.toJSON());
-  } catch (error) {
-    console.error("No se pudo guardar en localStorage:", error);
-  }
+  try { localStorage.setItem("planillaEmpleados", planilla.toJSON()); }
+  catch (error) { console.error("No se pudo guardar en localStorage:", error); }
 }
 
 function cargarPlanilla() {
@@ -212,32 +263,51 @@ function cargarPlanilla() {
   return Planilla.fromJSON(json);
 }
 
-function guardarConfig() {
-  localStorage.setItem("planillaConfig", JSON.stringify(config));
+function guardarHistorial() {
+  try { localStorage.setItem("planillaPagos", historial.toJSON()); }
+  catch (error) { console.error("No se pudo guardar el historial de pagos:", error); }
 }
+
+function cargarHistorial() {
+  const json = localStorage.getItem("planillaPagos");
+  if (!json) return new HistorialPagos();
+  return HistorialPagos.fromJSON(json);
+}
+
+function guardarConfig() { localStorage.setItem("planillaConfig", JSON.stringify(config)); }
 
 function cargarConfig() {
   const json = localStorage.getItem("planillaConfig");
   if (!json) return { ...CONFIG_DEFAULT };
-  try {
-    return { ...CONFIG_DEFAULT, ...JSON.parse(json) };
-  } catch {
-    return { ...CONFIG_DEFAULT };
-  }
+  try { return { ...CONFIG_DEFAULT, ...JSON.parse(json) }; }
+  catch { return { ...CONFIG_DEFAULT }; }
 }
 
-/* ---------------------- VALIDACIONES (Semana 3: regex + cadenas) ---------------------- */
+/* ---------------------- VALIDACIONES ---------------------- */
 const REGEX_NOMBRE = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,60}$/;
 const REGEX_DNI = /^\d{8}$/;
 
-function validarNombre(valor) {
-  const limpio = valor.trim();
-  return REGEX_NOMBRE.test(limpio);
-}
+function validarNombre(valor) { return REGEX_NOMBRE.test(valor.trim()); }
+function validarDni(valor) { return REGEX_DNI.test(valor.trim()); }
 
-function validarDni(valor) {
-  const limpio = valor.trim();
-  return REGEX_DNI.test(limpio);
+function marcarCampo(input, hintEl, esValido, mensajeError) {
+  if (input.value.trim() === "") {
+    input.classList.remove("valid", "invalid");
+    hintEl.textContent = "";
+    hintEl.className = "hint";
+    return;
+  }
+  if (esValido) {
+    input.classList.add("valid");
+    input.classList.remove("invalid");
+    hintEl.textContent = "";
+    hintEl.className = "hint ok";
+  } else {
+    input.classList.add("invalid");
+    input.classList.remove("valid");
+    hintEl.textContent = mensajeError;
+    hintEl.className = "hint error";
+  }
 }
 
 /* ---------------------- NAVEGACION LATERAL ---------------------- */
@@ -264,127 +334,87 @@ if (btnMenu) {
   });
 }
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-if (sidebarBackdrop) {
-  sidebarBackdrop.addEventListener("click", cerrarSidebar);
+if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", cerrarSidebar);
+
+function irAVista(viewName) {
+  navItems.forEach(b => b.classList.remove("active"));
+  const btn = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+  if (btn) btn.classList.add("active");
+  views.forEach(v => v.hidden = true);
+  document.getElementById(`view-${viewName}`).hidden = false;
+  cerrarSidebar();
+  renderAll();
 }
 
 navItems.forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.view;
-
-    navItems.forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    views.forEach(v => v.hidden = true);
-    document.getElementById(`view-${target}`).hidden = false;
-    cerrarSidebar();
-
-    // Siempre recalculamos todo al cambiar de vista, para asegurar
-    // que ninguna seccion (incluido el Dashboard) muestre datos viejos.
-    renderAll();
-  });
+  btn.addEventListener("click", () => irAVista(btn.dataset.view));
 });
 
-/* ---------------------- FORMULARIO: REGISTRO ---------------------- */
+/* ==========================================================================
+   MODULO 1: REGISTRAR EMPLEADO
+   ========================================================================== */
 const form = document.getElementById("formEmpleado");
-const inputNombre = document.getElementById("nombre");
 const inputDni = document.getElementById("dni");
+const inputNombre = document.getElementById("nombre");
 const selectCargo = document.getElementById("cargo");
 const inputSueldoBase = document.getElementById("sueldoBase");
-const inputHorasExtra = document.getElementById("horasExtra");
 const selectRegimen = document.getElementById("regimen");
-
 const hintNombre = document.getElementById("hintNombre");
 const hintDni = document.getElementById("hintDni");
 
-// Validacion en vivo (Semana 1: eventos + estructuras de control)
 inputNombre.addEventListener("input", () => {
-  const ok = validarNombre(inputNombre.value);
-  marcarCampo(inputNombre, hintNombre, ok, "Nombre inválido");
+  marcarCampo(inputNombre, hintNombre, validarNombre(inputNombre.value), "Nombre inválido");
 });
 
 inputDni.addEventListener("input", () => {
-  // solo digitos
   inputDni.value = inputDni.value.replace(/\D/g, "").slice(0, 8);
   const ok = validarDni(inputDni.value);
   marcarCampo(inputDni, hintDni, ok, "DNI inválido");
+  if (ok && planilla.obtenerPorDni(inputDni.value)) {
+    hintDni.textContent = "Ya existe un empleado registrado con este DNI.";
+    hintDni.className = "hint error";
+    inputDni.classList.add("invalid");
+    inputDni.classList.remove("valid");
+  }
 });
-
-function marcarCampo(input, hintEl, esValido, mensajeError) {
-  if (input.value.trim() === "") {
-    input.classList.remove("valid", "invalid");
-    hintEl.textContent = "";
-    hintEl.className = "hint";
-    return;
-  }
-  if (esValido) {
-    input.classList.add("valid");
-    input.classList.remove("invalid");
-    hintEl.textContent = "";
-    hintEl.className = "hint ok";
-  } else {
-    input.classList.add("invalid");
-    input.classList.remove("valid");
-    hintEl.textContent = mensajeError;
-    hintEl.className = "hint error";
-  }
-}
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-
   try {
-    const nombre = inputNombre.value.trim();
     const dni = inputDni.value.trim();
+    const nombre = inputNombre.value.trim();
     const cargo = selectCargo.value;
     const sueldoBase = inputSueldoBase.value;
-    const horasExtra = inputHorasExtra.value || 0;
     const regimen = selectRegimen.value;
 
-    // Semana 1: if / else para validar antes de continuar
-    if (!validarNombre(nombre)) {
-      throw new Error("El nombre debe tener solo letras (mínimo 3 caracteres).");
-    }
-    if (!validarDni(dni)) {
-      throw new Error("El DNI debe tener 8 dígitos.");
-    }
-    if (!cargo) {
-      throw new Error("Selecciona un cargo.");
-    }
-    if (sueldoBase === "" || isNaN(sueldoBase) || Number(sueldoBase) <= 0) {
-      throw new Error("Ingresa un sueldo base válido.");
-    }
-    if (horasExtra === "" || isNaN(horasExtra) || Number(horasExtra) < 0) {
-      throw new Error("Ingresa un número válido de horas extra.");
-    }
-    if (!regimen) {
-      throw new Error("Selecciona un régimen (AFP u ONP).");
-    }
+    if (!validarDni(dni)) throw new Error("El DNI debe tener 8 dígitos.");
+    if (planilla.obtenerPorDni(dni)) throw new Error("Ya existe un empleado registrado con este DNI.");
+    if (!validarNombre(nombre)) throw new Error("El nombre debe tener solo letras (mínimo 3 caracteres).");
+    if (!cargo) throw new Error("Selecciona un cargo.");
+    if (sueldoBase === "" || isNaN(sueldoBase) || Number(sueldoBase) <= 0) throw new Error("Ingresa un sueldo básico válido.");
+    if (!regimen) throw new Error("Selecciona un sistema de pensiones (AFP u ONP).");
 
-    const nuevoEmpleado = new Empleado(nombre, dni, cargo, sueldoBase, horasExtra, regimen);
-    planilla.agregar(nuevoEmpleado);
+    planilla.agregar(new Empleado(dni, nombre, cargo, sueldoBase, regimen));
     guardarPlanilla();
 
     form.reset();
-    limpiarValidaciones();
+    limpiarValidacionesEmpleado();
     renderAll();
-
   } catch (error) {
     alert(error.message);
   }
 });
 
-// El boton "Guardar Empleado" de la cabecera del panel dispara el mismo submit del formulario
 document.getElementById("btnGuardarTop").addEventListener("click", () => {
   form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true }));
 });
 
 document.getElementById("btnLimpiar").addEventListener("click", () => {
   form.reset();
-  limpiarValidaciones();
+  limpiarValidacionesEmpleado();
 });
 
-function limpiarValidaciones() {
+function limpiarValidacionesEmpleado() {
   [inputNombre, inputDni].forEach(el => el.classList.remove("valid", "invalid"));
   hintNombre.textContent = "";
   hintDni.textContent = "";
@@ -397,46 +427,41 @@ const filtroCargo = document.getElementById("filtroCargo");
 const salMin = document.getElementById("salMin");
 const salMax = document.getElementById("salMax");
 
-const employeeList2 = document.getElementById("employeeList2");
-const emptyMsg2 = document.getElementById("emptyMsg2");
-const filtroCargo2 = document.getElementById("filtroCargo2");
-const salMin2 = document.getElementById("salMin2");
-const salMax2 = document.getElementById("salMax2");
-
 function crearFilaEmpleado(emp) {
   const li = document.createElement("li");
   li.className = "emp-row";
-  if (emp.id === empleadoSeleccionadoId) li.classList.add("emp-row-active");
-  const bruto = emp.calcularBruto(config);
+  const neto = emp.calcularNeto(config);
 
-  // Semana 3: template literals / interpolacion
   li.innerHTML = `
     <div class="emp-avatar" data-initials="${emp.iniciales()}" style="background:${colorFromString(emp.nombre)}">
       <img src="${emp.avatarUrl()}" alt="${emp.nombre}" onerror="this.remove()">
     </div>
     <div class="emp-info">
       <p class="emp-name">${emp.nombre}</p>
-      <p class="emp-role">${emp.cargo}</p>
+      <p class="emp-role">${emp.cargo} · DNI ${emp.dni}</p>
     </div>
-    <span class="emp-salary">$ ${bruto.toFixed(2)}</span>
+    <div class="emp-salary-block">
+      <span class="emp-salary">S/ ${neto.toFixed(2)}</span>
+      <span class="badge-modalidad">${emp.regimen}</span>
+    </div>
     <div class="emp-actions">
-      <button class="btn btn-primary btn-sm" data-action="ver" data-id="${emp.id}">Ver Boleta</button>
-      <button class="btn btn-ghost btn-sm" data-action="editar" data-id="${emp.id}">Editar</button>
       <button class="btn btn-danger btn-sm" data-action="eliminar" data-id="${emp.id}">Eliminar</button>
     </div>
   `;
   return li;
 }
 
-function renderListaEn(container, emptyEl, lista) {
-  container.innerHTML = "";
+function renderListaPrincipal() {
+  const filtro = obtenerFiltro(filtroCargo, salMin, salMax);
+  const lista = planilla.filtrar(filtro, config);
+  employeeList.innerHTML = "";
   if (lista.length === 0) {
-    emptyEl.hidden = false;
-    return;
+    emptyMsg.hidden = false;
+  } else {
+    emptyMsg.hidden = true;
+    lista.forEach(emp => employeeList.appendChild(crearFilaEmpleado(emp)));
   }
-  emptyEl.hidden = true;
-  // Semana 4: forEach
-  lista.forEach(emp => container.appendChild(crearFilaEmpleado(emp)));
+  actualizarChipRegimen();
 }
 
 function obtenerFiltro(cargoSel, minInput, maxInput) {
@@ -446,37 +471,18 @@ function obtenerFiltro(cargoSel, minInput, maxInput) {
   return { cargo, min, max, regimen: filtroRegimenActivo };
 }
 
-function renderListaPrincipal() {
-  const filtro = obtenerFiltro(filtroCargo, salMin, salMax);
-  renderListaEn(employeeList, emptyMsg, planilla.filtrar(filtro, config));
-  actualizarChipRegimen();
-}
-
-function renderLista() {
-  const filtro = obtenerFiltro(filtroCargo2, salMin2, salMax2);
-  renderListaEn(employeeList2, emptyMsg2, planilla.filtrar(filtro, config));
-  actualizarChipRegimen();
-}
-
 function actualizarChipRegimen() {
-  const chips = [
-    { el: document.getElementById("chipRegimen1"), clear: "1" },
-    { el: document.getElementById("chipRegimen2"), clear: "2" }
-  ];
-  chips.forEach(({ el }) => {
-    if (!filtroRegimenActivo) {
-      el.hidden = true;
-    } else {
-      el.hidden = false;
-      el.querySelector("span").textContent = `Mostrando solo: ${filtroRegimenActivo}`;
-    }
-  });
-  // resalta la barra activa en ambos dashboards (standalone y Home)
-  ["rowAfp", "rowOnp", "rowAfpHome", "rowOnpHome"].forEach(id => {
+  const chip = document.getElementById("chipRegimen1");
+  if (!filtroRegimenActivo) {
+    chip.hidden = true;
+  } else {
+    chip.hidden = false;
+    chip.querySelector("span").textContent = `Mostrando solo: ${filtroRegimenActivo}`;
+  }
+  ["rowAfp", "rowOnp"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    const regimenBtn = el.dataset.regimen;
-    el.classList.toggle("filter-active", filtroRegimenActivo === regimenBtn);
+    el.classList.toggle("filter-active", filtroRegimenActivo === el.dataset.regimen);
   });
 }
 
@@ -484,140 +490,199 @@ document.querySelectorAll(".active-filter-chip button").forEach(btn => {
   btn.addEventListener("click", () => {
     filtroRegimenActivo = null;
     renderListaPrincipal();
-    renderLista();
   });
 });
 
-function actualizarSelectsCargo() {
+function actualizarSelectCargo() {
   const cargos = planilla.cargosUnicos();
-  [filtroCargo, filtroCargo2].forEach(sel => {
-    const valorActual = sel.value;
-    sel.innerHTML = `<option value="">Filtrar por Cargo</option>` +
-      cargos.map(c => `<option value="${c}">${c}</option>`).join("");
-    sel.value = cargos.includes(valorActual) ? valorActual : "";
-  });
+  const valorActual = filtroCargo.value;
+  filtroCargo.innerHTML = `<option value="">Filtrar por cargo</option>` +
+    cargos.map(c => `<option value="${c}">${c}</option>`).join("");
+  filtroCargo.value = cargos.includes(valorActual) ? valorActual : "";
 }
 
 [filtroCargo, salMin, salMax].forEach(el => el.addEventListener("input", renderListaPrincipal));
-[filtroCargo2, salMin2, salMax2].forEach(el => el.addEventListener("input", renderLista));
 
-// Delegacion de eventos: ver / editar / eliminar
-[employeeList, employeeList2].forEach(container => {
-  container.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-action]");
-    if (!btn) return;
-    const id = Number(btn.dataset.id);
-    const accion = btn.dataset.action;
-
-    if (accion === "eliminar") {
-      if (confirm("¿Eliminar este empleado?")) {
-        if (empleadoSeleccionadoId === id) empleadoSeleccionadoId = null;
-        planilla.eliminar(id);
-        guardarPlanilla();
-        renderAll();
-      }
-    } else if (accion === "ver") {
-      empleadoSeleccionadoId = id;
-      if (container === employeeList) {
-        // Ya estamos en la vista principal: solo actualizamos la boleta ahi mismo, sin navegar
-        renderPayslipHome();
-        renderListaPrincipal(); // para resaltar la fila activa
-      } else {
-        // Lista standalone: navega a la vista de Boletas para verla en grande
-        irABoleta(id);
-      }
-    } else if (accion === "editar") {
-      cargarEnFormulario(id);
+employeeList.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  if (btn.dataset.action === "eliminar") {
+    if (confirm("¿Eliminar este empleado?")) {
+      planilla.eliminar(id);
+      guardarPlanilla();
+      renderAll();
     }
-  });
+  }
 });
 
-function cargarEnFormulario(id) {
-  const emp = planilla.obtener(id);
-  if (!emp) return;
+/* ==========================================================================
+   MODULO 2: PROCESAR PAGO
+   ========================================================================== */
+const formPago = document.getElementById("formPago");
+const inputBuscarPago = document.getElementById("buscarPago");
+const listaEmpleadosPago = document.getElementById("listaEmpleadosPago");
+const hintPagoEmpleado = document.getElementById("hintPagoEmpleado");
+const inputFechaPago = document.getElementById("fechaPago");
+const selectModalidadPago = document.getElementById("modalidadPago");
+const inputHorasExtra = document.getElementById("horasExtra");
+const inputTardanzasPago = document.getElementById("tardanzas");
+const fieldTardanzas = document.getElementById("fieldTardanzas");
+const hintModalidad = document.getElementById("hintModalidad");
+const btnProcesarPago = document.getElementById("btnProcesarPago");
+const btnLimpiarPago = document.getElementById("btnLimpiarPago");
+const btnNuevoPago = document.getElementById("btnNuevoPago");
+const payslipPago = document.getElementById("payslipPago");
 
-  // cambia a la vista de registro
-  navItems.forEach(b => b.classList.remove("active"));
-  document.querySelector('.nav-item[data-view="registrar"]').classList.add("active");
-  views.forEach(v => v.hidden = true);
-  document.getElementById("view-registrar").hidden = false;
+inputFechaPago.value = new Date().toISOString().slice(0, 10);
 
-  inputNombre.value = emp.nombre;
-  inputDni.value = emp.dni;
-  selectCargo.value = emp.cargo;
-  inputSueldoBase.value = emp.sueldoBase;
-  inputHorasExtra.value = emp.horasExtra;
-  selectRegimen.value = emp.regimen;
-
-  // al guardar de nuevo, eliminamos el original y creamos uno nuevo (simplicidad)
-  planilla.eliminar(id);
-  guardarPlanilla();
-  renderAll();
+function actualizarListaDatalistPago() {
+  listaEmpleadosPago.innerHTML = planilla.empleados
+    .map(e => `<option value="${e.dni} — ${e.nombre}"></option>`)
+    .join("");
 }
 
-function irABoleta(id) {
-  navItems.forEach(b => b.classList.remove("active"));
-  document.querySelector('.nav-item[data-view="boletas"]').classList.add("active");
-  views.forEach(v => v.hidden = true);
-  document.getElementById("view-boletas").hidden = false;
-  renderBoletas();
+function buscarEmpleadoDesdeTexto(texto) {
+  const limpio = texto.trim();
+  if (!limpio) return null;
+  const matchDni = limpio.match(/^(\d{8})/);
+  if (matchDni) return planilla.obtenerPorDni(matchDni[1]);
+  const porDniExacto = planilla.obtenerPorDni(limpio);
+  if (porDniExacto) return porDniExacto;
+  const porNombreExacto = planilla.empleados.find(e => e.nombre.toLowerCase() === limpio.toLowerCase());
+  if (porNombreExacto) return porNombreExacto;
+  return planilla.empleados.find(e => e.nombre.toLowerCase().includes(limpio.toLowerCase())) || null;
 }
 
-/* ---------------------- RENDER: BOLETAS DE PAGO ---------------------- */
-const employeeListBoletas = document.getElementById("employeeListBoletas");
-const emptyMsgBoletas = document.getElementById("emptyMsgBoletas");
-const payslipEl = document.getElementById("payslip");
-
-function renderBoletas() {
-  employeeListBoletas.innerHTML = "";
-  if (planilla.empleados.length === 0) {
-    emptyMsgBoletas.hidden = false;
+function actualizarVisibilidadModalidadPago() {
+  const esQuincena = selectModalidadPago.value === "Quincena";
+  fieldTardanzas.hidden = esQuincena;
+  document.getElementById("horasExtra").closest(".field").hidden = esQuincena;
+  if (esQuincena) {
+    hintModalidad.textContent = "Adelanto quincenal: 40% del sueldo básico, sin descuentos de ley.";
+    hintModalidad.className = "hint ok";
   } else {
-    emptyMsgBoletas.hidden = true;
-    planilla.empleados.forEach(emp => {
-      const li = document.createElement("li");
-      li.className = "emp-row";
-      li.style.cursor = "pointer";
-      li.innerHTML = `
-        <div class="emp-avatar" data-initials="${emp.iniciales()}" style="background:${colorFromString(emp.nombre)}">
-          <img src="${emp.avatarUrl()}" alt="${emp.nombre}" onerror="this.remove()">
-        </div>
-        <div class="emp-info">
-          <p class="emp-name">${emp.nombre}</p>
-          <p class="emp-role">${emp.cargo}</p>
-        </div>
-        <button class="btn btn-primary btn-sm" data-id="${emp.id}">Ver Boleta</button>
-      `;
-      if (emp.id === empleadoSeleccionadoId) li.classList.add("emp-row-active");
-      li.querySelector("button").addEventListener("click", () => {
-        empleadoSeleccionadoId = emp.id;
-        renderPayslip(emp.id);
-      });
-      employeeListBoletas.appendChild(li);
-    });
-  }
-
-  if (empleadoSeleccionadoId && planilla.obtener(empleadoSeleccionadoId)) {
-    renderPayslip(empleadoSeleccionadoId);
+    hintModalidad.textContent = "Pago de fin de mes: se descuenta el adelanto quincenal (40%) y las retenciones de ley.";
+    hintModalidad.className = "hint";
   }
 }
+selectModalidadPago.addEventListener("change", actualizarVisibilidadModalidadPago);
+actualizarVisibilidadModalidadPago();
 
-function renderPayslip(id, targetId = "payslip") {
+inputBuscarPago.addEventListener("input", () => {
+  const emp = buscarEmpleadoDesdeTexto(inputBuscarPago.value);
+  if (emp) {
+    pagoEmpleadoSeleccionado = emp;
+    hintPagoEmpleado.textContent = `✓ ${emp.nombre} · ${emp.cargo} · Sueldo básico S/ ${emp.sueldoBase.toFixed(2)} · ${emp.regimen}`;
+    hintPagoEmpleado.className = "hint ok";
+  } else {
+    pagoEmpleadoSeleccionado = null;
+    hintPagoEmpleado.textContent = inputBuscarPago.value.trim() ? "Empleado no encontrado." : "";
+    hintPagoEmpleado.className = inputBuscarPago.value.trim() ? "hint error" : "hint";
+  }
+});
+
+const CAMPOS_BLOQUEABLES_PAGO = [inputBuscarPago, inputFechaPago, selectModalidadPago, inputHorasExtra, inputTardanzasPago];
+
+function bloquearFormularioPago(bloquear) {
+  CAMPOS_BLOQUEABLES_PAGO.forEach(el => el.disabled = bloquear);
+  btnProcesarPago.disabled = bloquear;
+  btnLimpiarPago.disabled = bloquear;
+}
+
+formPago.addEventListener("submit", (e) => {
+  e.preventDefault();
+  try {
+    if (!pagoEmpleadoSeleccionado) throw new Error("Busca y selecciona un empleado válido (por DNI o nombre).");
+    const fechaPago = inputFechaPago.value;
+    const modalidadPago = selectModalidadPago.value;
+    const horasExtra = inputHorasExtra.value || 0;
+    const tardanzas = modalidadPago === "Quincena" ? 0 : (inputTardanzasPago.value || 0);
+
+    if (!fechaPago) throw new Error("Selecciona la fecha de pago.");
+    if (!modalidadPago) throw new Error("Selecciona la modalidad de pago.");
+    if (isNaN(horasExtra) || Number(horasExtra) < 0) throw new Error("Ingresa un número válido de horas extra.");
+    if (isNaN(tardanzas) || Number(tardanzas) < 0) throw new Error("El descuento por tardanzas/faltas no puede ser negativo.");
+
+    const emp = pagoEmpleadoSeleccionado;
+    const pago = new Pago({
+      empleadoId: emp.id, dni: emp.dni, nombre: emp.nombre, cargo: emp.cargo,
+      sueldoBase: emp.sueldoBase, regimen: emp.regimen,
+      fechaPago, modalidadPago, horasExtra, tardanzas
+    }, config);
+
+    historial.agregar(pago);
+    guardarHistorial();
+
+    bloquearFormularioPago(true);
+    renderPayslipEn(pago, "payslipPago");
+    renderBoletas();
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+btnLimpiarPago.addEventListener("click", () => {
+  formPago.reset();
+  inputFechaPago.value = new Date().toISOString().slice(0, 10);
+  selectModalidadPago.value = "Mensual";
+  actualizarVisibilidadModalidadPago();
+  pagoEmpleadoSeleccionado = null;
+  hintPagoEmpleado.textContent = "";
+  hintPagoEmpleado.className = "hint";
+});
+
+btnNuevoPago.addEventListener("click", () => {
+  bloquearFormularioPago(false);
+  formPago.reset();
+  inputFechaPago.value = new Date().toISOString().slice(0, 10);
+  selectModalidadPago.value = "Mensual";
+  actualizarVisibilidadModalidadPago();
+  pagoEmpleadoSeleccionado = null;
+  hintPagoEmpleado.textContent = "";
+  hintPagoEmpleado.className = "hint";
+  payslipPago.innerHTML = `<p class="payslip-placeholder">Completa el formulario y pulsa «Procesar Pago» para ver la boleta.</p>`;
+});
+
+/* ==========================================================================
+   BOLETA DE PAGO (markup compartido entre Procesar Pago y Boletas de Pago)
+   ========================================================================== */
+function renderPayslipEn(pago, targetId) {
   const target = document.getElementById(targetId);
   if (!target) return;
-  const emp = planilla.obtener(id);
-  if (!emp) {
-    target.innerHTML = `<p class="payslip-placeholder">Selecciona un empleado de la lista para ver su boleta.</p>`;
+  if (!pago) {
+    target.innerHTML = `<p class="payslip-placeholder">Selecciona una boleta para verla.</p>`;
     return;
   }
 
-  const bruto = emp.calcularBruto(config);
-  const desc = emp.calcularDescuentos(config);
-  const neto = emp.calcularNeto(config);
-  const fecha = new Date().toLocaleDateString("es-PE");
-  const tasaPension = emp.regimen === "AFP" ? config.tasaAfp : config.tasaOnp;
+  const fecha = new Date(pago.fechaPago + "T00:00:00").toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const esQuincena = pago.modalidadPago === "Quincena";
 
-  // Semana 3: template literals con interpolacion multilinea
+  const seccionIngresosDescuentos = esQuincena
+    ? `
+    <div class="payslip-section">
+      <h4>Adelanto Quincenal</h4>
+      <div class="payslip-line"><span>Sueldo Básico</span><span>S/ ${pago.sueldoBase.toFixed(2)}</span></div>
+      <div class="payslip-line"><span>Adelanto (40% del básico)</span><span>S/ ${pago.neto.toFixed(2)}</span></div>
+    </div>
+    <p class="hint ok" style="margin:0 0 14px;">Sin descuentos de ley — este monto se regulariza en el pago de fin de mes.</p>
+    `
+    : `
+    <div class="payslip-section">
+      <h4>Ingresos</h4>
+      <div class="payslip-line"><span>Sueldo Básico</span><span>S/ ${pago.sueldoBase.toFixed(2)}</span></div>
+      <div class="payslip-line"><span>Horas Extra (${pago.horasExtra}h)</span><span>S/ ${pago.ingresoExtra.toFixed(2)}</span></div>
+      <div class="payslip-line" style="font-weight:700;"><span>Sueldo Bruto</span><span>S/ ${pago.bruto.toFixed(2)}</span></div>
+    </div>
+
+    <div class="payslip-section">
+      <h4>Descuentos</h4>
+      <div class="payslip-line discount"><span>Adelanto Quincenal (40%)</span><span>S/ ${pago.adelanto.toFixed(2)}</span></div>
+      <div class="payslip-line discount"><span>${pago.regimen} (${pago.tasaPension}%)</span><span>S/ ${pago.pension.toFixed(2)}</span></div>
+      ${pago.tardanzas > 0 ? `<div class="payslip-line discount"><span>Tardanzas / Faltas</span><span>S/ ${pago.tardanzas.toFixed(2)}</span></div>` : ""}
+    </div>
+    `;
+
   target.innerHTML = `
     <div class="payslip-company">
       <div class="payslip-company-logo">${inicialesEmpresa(config.empresaNombre)}</div>
@@ -627,39 +692,30 @@ function renderPayslip(id, targetId = "payslip") {
       </div>
     </div>
 
+    <span class="payslip-modalidad ${esQuincena ? "is-quincena" : ""}">${esQuincena ? "Adelanto Quincenal" : "Pago Fin de Mes"} · ${fecha}</span>
+
     <div class="payslip-header">
-      <div class="payslip-avatar" data-initials="${emp.iniciales()}" style="background:${colorFromString(emp.nombre)}">
-        <img src="${emp.avatarUrl()}" alt="${emp.nombre}" onerror="this.remove()">
+      <div class="payslip-avatar" data-initials="${pago.iniciales()}" style="background:${colorFromString(pago.nombre)}">
+        <img src="${pago.avatarUrl()}" alt="${pago.nombre}" onerror="this.remove()">
       </div>
       <div>
-        <h3>${emp.nombre}</h3>
-        <p>${emp.cargo}</p>
+        <h3>${pago.nombre}</h3>
+        <p>${pago.cargo}</p>
       </div>
     </div>
 
     <div class="payslip-section">
       <h4>Información del Empleado</h4>
-      <div class="payslip-line"><span>Nombre:</span><span>${emp.nombre}</span></div>
-      <div class="payslip-line"><span>DNI:</span><span>${emp.dni}</span></div>
-      <div class="payslip-line"><span>Fecha:</span><span>${fecha}</span></div>
+      <div class="payslip-line"><span>Nombre:</span><span>${pago.nombre}</span></div>
+      <div class="payslip-line"><span>DNI:</span><span>${pago.dni}</span></div>
+      <div class="payslip-line"><span>Fecha de Pago:</span><span>${fecha}</span></div>
     </div>
 
-    <div class="payslip-section">
-      <h4>Ingresos</h4>
-      <div class="payslip-line"><span>Sueldo Base</span><span>$ ${emp.sueldoBase.toFixed(2)}</span></div>
-      <div class="payslip-line"><span>Horas Extra (${emp.horasExtra}h)</span><span>$ ${(emp.horasExtra * config.valorHoraExtra).toFixed(2)}</span></div>
-    </div>
-
-    <div class="payslip-section">
-      <h4>Descuentos</h4>
-      <div class="payslip-line discount"><span>${emp.regimen} (${tasaPension}%)</span><span>$ ${desc.pension.toFixed(2)}</span></div>
-      <div class="payslip-line discount"><span>EsSalud (${config.tasaSalud}%)</span><span>$ ${desc.salud.toFixed(2)}</span></div>
-      <div class="payslip-line discount"><span>Impuestos (${config.tasaImpuesto}%)</span><span>$ ${desc.impuesto.toFixed(2)}</span></div>
-    </div>
+    ${seccionIngresosDescuentos}
 
     <div class="payslip-neto">
-      <span>Sueldo Neto</span>
-      <span>$ ${neto.toFixed(2)}</span>
+      <span>${esQuincena ? "Adelanto a Pagar" : "Sueldo Neto a Pagar"}</span>
+      <span>S/ ${pago.neto.toFixed(2)}</span>
     </div>
 
     <button class="btn btn-primary payslip-print" id="btnImprimir${targetId}">Imprimir Boleta</button>
@@ -668,10 +724,6 @@ function renderPayslip(id, targetId = "payslip") {
   document.getElementById(`btnImprimir${targetId}`).addEventListener("click", () => imprimirBoleta(targetId));
 }
 
-/* Aisla SOLO el contenido de la boleta para imprimir: clona el HTML del
-   ticket (sin el boton de imprimir) dentro de #printArea, que es lo unico
-   visible en @media print. Asi no sale nunca el resto de la pantalla
-   (lista, dashboard, sidebar, etc). */
 function imprimirBoleta(targetId) {
   const origen = document.getElementById(targetId);
   const printArea = document.getElementById("printArea");
@@ -681,40 +733,81 @@ function imprimirBoleta(targetId) {
   window.print();
 }
 
-/* Boleta que se muestra por defecto: el empleado seleccionado, o si no hay
-   ninguno elegido aun, el ultimo registrado (para que la columna Home
-   siempre muestre algo util, igual que en el diseño de referencia). */
-function empleadoBoletaPorDefecto() {
-  if (empleadoSeleccionadoId && planilla.obtener(empleadoSeleccionadoId)) {
-    return planilla.obtener(empleadoSeleccionadoId);
+/* ==========================================================================
+   MODULO 3: BOLETAS DE PAGO (historial + filtros)
+   ========================================================================== */
+const listaBoletas = document.getElementById("listaBoletas");
+const emptyMsgBoletas = document.getElementById("emptyMsgBoletas");
+const filtroFechaBoleta = document.getElementById("filtroFechaBoleta");
+const filtroTextoBoleta = document.getElementById("filtroTextoBoleta");
+const btnLimpiarFiltrosBoletas = document.getElementById("btnLimpiarFiltrosBoletas");
+
+function renderBoletas() {
+  const filtro = { fecha: filtroFechaBoleta.value, texto: filtroTextoBoleta.value };
+  const lista = historial.filtrar(filtro);
+
+  listaBoletas.innerHTML = "";
+  if (lista.length === 0) {
+    emptyMsgBoletas.hidden = false;
+    emptyMsgBoletas.textContent = historial.pagos.length === 0
+      ? "Aún no se ha procesado ningún pago."
+      : "Ningún resultado coincide con los filtros.";
+  } else {
+    emptyMsgBoletas.hidden = true;
+    lista.forEach(pago => listaBoletas.appendChild(crearFilaBoleta(pago)));
   }
-  return planilla.empleados.length ? planilla.empleados[planilla.empleados.length - 1] : null;
+
+  if (boletaSeleccionadaId && lista.some(p => p.id === boletaSeleccionadaId)) {
+    renderPayslipEn(historial.obtener(boletaSeleccionadaId), "payslip");
+  } else {
+    boletaSeleccionadaId = null;
+    renderPayslipEn(null, "payslip");
+  }
 }
 
-function renderPayslipHome() {
-  const emp = empleadoBoletaPorDefecto();
-  renderPayslip(emp ? emp.id : null, "payslipHome");
+function crearFilaBoleta(pago) {
+  const li = document.createElement("li");
+  li.className = "emp-row";
+  if (pago.id === boletaSeleccionadaId) li.classList.add("emp-row-active");
+  const fecha = new Date(pago.fechaPago + "T00:00:00").toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  li.innerHTML = `
+    <div class="emp-avatar" data-initials="${pago.iniciales()}" style="background:${colorFromString(pago.nombre)}">
+      <img src="${pago.avatarUrl()}" alt="${pago.nombre}" onerror="this.remove()">
+    </div>
+    <div class="emp-info">
+      <p class="emp-name">${pago.nombre}</p>
+      <p class="emp-role">DNI ${pago.dni} · ${fecha}</p>
+    </div>
+    <span class="badge-modalidad ${pago.modalidadPago === "Quincena" ? "badge-quincena" : ""}">${pago.modalidadPago}</span>
+    <button class="btn btn-primary btn-sm" data-id="${pago.id}">Ver Boleta</button>
+  `;
+  li.querySelector("button").addEventListener("click", () => {
+    boletaSeleccionadaId = pago.id;
+    renderBoletas();
+  });
+  return li;
 }
 
-/* ---------------------- RENDER: DASHBOARD ----------------------
-   suffix = '' para la vista standalone "Dashboard", 'Home' para la
-   columna de la vista principal (Registrar Empleado). Misma logica,
-   dos lugares donde se pinta, para que ambas queden reactivas. */
-function renderDashboard(suffix = "") {
+[filtroFechaBoleta, filtroTextoBoleta].forEach(el => el.addEventListener("input", renderBoletas));
+btnLimpiarFiltrosBoletas.addEventListener("click", () => {
+  filtroFechaBoleta.value = "";
+  filtroTextoBoleta.value = "";
+  renderBoletas();
+});
+
+/* ==========================================================================
+   DASHBOARD
+   ========================================================================== */
+function renderDashboard() {
   const totales = planilla.totales(config);
-  const statBruto = document.getElementById("statBruto" + suffix);
-  const statDescuentos = document.getElementById("statDescuentos" + suffix);
-  const statNeto = document.getElementById("statNeto" + suffix);
-  if (!statBruto) return; // por si el suffix no existe en el DOM
+  document.getElementById("statBruto").textContent = `S/ ${totales.bruto.toFixed(2)}`;
+  document.getElementById("statDescuentos").textContent = `S/ ${totales.descuentos.toFixed(2)}`;
+  document.getElementById("statNeto").textContent = `S/ ${totales.neto.toFixed(2)}`;
 
-  statBruto.textContent = `$ ${totales.bruto.toFixed(2)}`;
-  statDescuentos.textContent = `$ ${totales.descuentos.toFixed(2)}`;
-  statNeto.textContent = `$ ${totales.neto.toFixed(2)}`;
-
-  // Barras de proporcion: bruto = 100% (referencia), descuentos y neto como % del bruto
-  const propBruto = document.getElementById("propBruto" + suffix);
-  const propDescuentos = document.getElementById("propDescuentos" + suffix);
-  const propNeto = document.getElementById("propNeto" + suffix);
+  const propBruto = document.getElementById("propBruto");
+  const propDescuentos = document.getElementById("propDescuentos");
+  const propNeto = document.getElementById("propNeto");
   if (totales.bruto > 0) {
     propBruto.style.width = "100%";
     propDescuentos.style.width = `${Math.round((totales.descuentos / totales.bruto) * 100)}%`;
@@ -726,44 +819,33 @@ function renderDashboard(suffix = "") {
   }
 
   const regimen = planilla.conteoRegimen();
-  document.getElementById("barAfp" + suffix).style.width = `${regimen.afp}%`;
-  document.getElementById("barOnp" + suffix).style.width = `${regimen.onp}%`;
+  document.getElementById("barAfp").style.width = `${regimen.afp}%`;
+  document.getElementById("barOnp").style.width = `${regimen.onp}%`;
 
   const mayor = planilla.mayorSueldo(config);
   const menor = planilla.menorSueldo(config);
-  pintarMiniCard("cardMayor" + suffix, mayor);
-  pintarMiniCard("cardMenor" + suffix, menor);
-
-  // Habilita/deshabilita las mini-cards clicables segun haya datos
-  document.getElementById("cardMayor" + suffix).disabled = !mayor;
-  document.getElementById("cardMenor" + suffix).disabled = !menor;
+  pintarMiniCard("cardMayor", mayor);
+  pintarMiniCard("cardMenor", menor);
+  document.getElementById("cardMayor").disabled = !mayor;
+  document.getElementById("cardMenor").disabled = !menor;
 }
 
-/* --- Interactividad del dashboard: clic en barras AFP/ONP filtra la lista --- */
 document.querySelectorAll(".regimen-clickable").forEach(btn => {
   btn.addEventListener("click", () => {
     const r = btn.dataset.regimen;
     filtroRegimenActivo = (filtroRegimenActivo === r) ? null : r;
-    // Llevamos al usuario a ver el resultado filtrado (el click en el nav ya recalcula todo)
-    document.querySelector('.nav-item[data-view="lista"]').click();
+    irAVista("registrar");
   });
 });
 
-/* --- Interactividad: clic en "Empleado Mayor/Menor Sueldo" ---
-   En la columna Home (dentro de "Registrar Empleado") actualiza la boleta ahi mismo,
-   sin navegar, porque ya esta visible en pantalla. En el Dashboard standalone, navega
-   a la vista de Boletas para verla en grande. */
 document.querySelectorAll(".mini-card-clickable").forEach(btn => {
   btn.addEventListener("click", () => {
     const emp = btn.dataset.role === "mayor" ? planilla.mayorSueldo(config) : planilla.menorSueldo(config);
     if (!emp) return;
-    empleadoSeleccionadoId = emp.id;
-    if (btn.id.endsWith("Home")) {
-      renderPayslipHome();
-      renderBoletas();
-    } else {
-      irABoleta(emp.id);
-    }
+    // Lleva al usuario a Procesar Pago con el empleado ya buscado
+    irAVista("pago");
+    inputBuscarPago.value = `${emp.dni} — ${emp.nombre}`;
+    inputBuscarPago.dispatchEvent(new Event("input"));
   });
 });
 
@@ -787,23 +869,19 @@ function pintarMiniCard(cardId, emp) {
   rol.textContent = `${emp.cargo} · ${emp.regimen}`;
 }
 
-function conectarExportar(btnId) {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    const blob = new Blob([planilla.toJSON()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "planilla.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-}
-conectarExportar("btnExportar");
-conectarExportar("btnExportarHome");
+document.getElementById("btnExportar").addEventListener("click", () => {
+  const blob = new Blob([planilla.toJSON()], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "planilla.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
 
-/* ---------------------- CONFIGURACION ---------------------- */
+/* ==========================================================================
+   CONFIGURACION
+   ========================================================================== */
 const cfgAfp = document.getElementById("cfgAfp");
 const cfgOnp = document.getElementById("cfgOnp");
 const cfgSalud = document.getElementById("cfgSalud");
@@ -818,9 +896,9 @@ function cargarFormConfig() {
   cfgOnp.value = config.tasaOnp;
   cfgSalud.value = config.tasaSalud;
   cfgHora.value = config.valorHoraExtra;
-  if (cfgImpuesto) cfgImpuesto.value = config.tasaImpuesto;
-  if (cfgEmpresa) cfgEmpresa.value = config.empresaNombre;
-  if (cfgRuc) cfgRuc.value = config.empresaRuc;
+  cfgImpuesto.value = config.tasaImpuesto;
+  cfgEmpresa.value = config.empresaNombre;
+  cfgRuc.value = config.empresaRuc;
 }
 
 document.getElementById("btnGuardarConfig").addEventListener("click", () => {
@@ -829,22 +907,19 @@ document.getElementById("btnGuardarConfig").addEventListener("click", () => {
     const onp = Number(cfgOnp.value);
     const salud = Number(cfgSalud.value);
     const hora = Number(cfgHora.value);
-    const impuesto = cfgImpuesto ? Number(cfgImpuesto.value) : config.tasaImpuesto;
-    const empresaNombre = cfgEmpresa && cfgEmpresa.value.trim() ? cfgEmpresa.value.trim() : config.empresaNombre;
-    const empresaRuc = cfgRuc ? cfgRuc.value.trim() : config.empresaRuc;
+    const impuesto = Number(cfgImpuesto.value);
+    const empresaNombre = cfgEmpresa.value.trim() || config.empresaNombre;
+    const empresaRuc = cfgRuc.value.trim();
 
     if ([afp, onp, salud, hora, impuesto].some(v => isNaN(v) || v < 0)) {
       throw new Error("Todos los valores deben ser números positivos.");
     }
 
-    config = {
-      tasaAfp: afp, tasaOnp: onp, tasaSalud: salud, valorHoraExtra: hora,
-      tasaImpuesto: impuesto, empresaNombre, empresaRuc
-    };
+    config = { tasaAfp: afp, tasaOnp: onp, tasaSalud: salud, valorHoraExtra: hora, tasaImpuesto: impuesto, empresaNombre, empresaRuc };
     guardarConfig();
     cfgMsg.textContent = "Configuración guardada correctamente.";
     cfgMsg.className = "hint ok";
-    renderAll(); // recalcula sueldos, boletas y dashboard con las nuevas tasas
+    renderAll();
   } catch (error) {
     cfgMsg.textContent = error.message;
     cfgMsg.className = "hint error";
@@ -852,28 +927,23 @@ document.getElementById("btnGuardarConfig").addEventListener("click", () => {
 });
 
 document.getElementById("btnResetData").addEventListener("click", () => {
-  if (confirm("Esto borrará todos los empleados guardados. ¿Continuar?")) {
+  if (confirm("Esto borrará todos los empleados y boletas guardadas. ¿Continuar?")) {
     localStorage.removeItem("planillaEmpleados");
+    localStorage.removeItem("planillaPagos");
     planilla = new Planilla();
-    empleadoSeleccionadoId = null;
+    historial = new HistorialPagos();
+    boletaSeleccionadaId = null;
     renderAll();
   }
 });
 
-/* ---------------------- RENDER GLOBAL (reactividad) ----------------------
-   Se llama despues de CUALQUIER cambio en los datos (agregar, editar, eliminar
-   empleado, cambiar configuracion, restaurar datos). Recalcula TODAS las
-   secciones -- lista, boletas y dashboard -- para que estan siempre
-   sincronizadas apenas se cumple la condicion (nuevo empleado, nuevo sueldo,
-   nuevo regimen, etc.), sin importar cual vista este activa en ese momento. */
+/* ---------------------- RENDER GLOBAL (reactividad) ---------------------- */
 function renderAll() {
-  actualizarSelectsCargo();
+  actualizarSelectCargo();
+  actualizarListaDatalistPago();
   renderListaPrincipal();
-  renderLista();
   renderBoletas();
-  renderPayslipHome();
-  renderDashboard();       // vista standalone "Dashboard"
-  renderDashboard("Home"); // columna Home dentro de "Registrar Empleado"
+  renderDashboard();
 }
 
 /* ---------------------- INICIALIZACION ---------------------- */
