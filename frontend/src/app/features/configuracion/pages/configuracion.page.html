@@ -1,0 +1,57 @@
+<app-page-header eyebrow="Sistema" titulo="Configuración" descripcion="Datos de la empresa y tasas que se usan al calcular cada boleta." />
+
+<form class="panel" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+  <p class="section-label">Empresa</p>
+  <div class="row">
+    <div class="col-md-8 mb-3">
+      <label class="form-label" for="empresaNombre">Nombre de la empresa</label>
+      <input id="empresaNombre" class="form-control" formControlName="empresaNombre" maxlength="60"
+             [ngClass]="claseValidacion(form.controls.empresaNombre)">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="empresaRuc">RUC (11 dígitos)</label>
+      <input id="empresaRuc" class="form-control" formControlName="empresaRuc" maxlength="11" inputmode="numeric"
+             [ngClass]="claseValidacion(form.controls.empresaRuc)">
+    </div>
+  </div>
+
+  <p class="section-label">Tasas (%)</p>
+  <div class="row">
+    @for (campo of tasas; track campo.id) {
+      <div class="col-md-4 mb-3">
+        <label class="form-label" [for]="campo.id">{{ campo.etiqueta }}</label>
+        <input [id]="campo.id" type="number" step="0.1" min="0" max="100" class="form-control" [formControlName]="campo.id"
+               [ngClass]="{ 'is-invalid': form.get(campo.id)?.invalid && form.get(campo.id)?.touched }">
+      </div>
+    }
+  </div>
+
+  <p class="section-label">Montos (S/)</p>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="valorHoraExtra">Valor de la hora extra</label>
+      <input id="valorHoraExtra" type="number" step="0.1" min="0" class="form-control" formControlName="valorHoraExtra"
+             [ngClass]="claseValidacion(form.controls.valorHoraExtra)">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="asignacionFamiliar">Asignación familiar</label>
+      <input id="asignacionFamiliar" type="number" step="0.01" min="0" class="form-control" formControlName="asignacionFamiliar"
+             [ngClass]="claseValidacion(form.controls.asignacionFamiliar)">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="uit">UIT</label>
+      <input id="uit" type="number" step="1" min="1" class="form-control" formControlName="uit"
+             [ngClass]="claseValidacion(form.controls.uit)">
+    </div>
+  </div>
+
+  <div class="form-check mb-4">
+    <input id="quinta" type="checkbox" class="form-check-input" formControlName="aplicarQuintaCategoria">
+    <label class="form-check-label" for="quinta">Aplicar retención de 5.ª categoría en el pago de fin de mes</label>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <button type="submit" class="btn btn-primary" [disabled]="guardando()">Guardar configuración</button>
+    <button type="button" class="btn btn-outline-danger ms-auto" (click)="reiniciar()">Borrar empleados y boletas</button>
+  </div>
+</form>

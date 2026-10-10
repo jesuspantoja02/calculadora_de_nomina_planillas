@@ -1,0 +1,9 @@
+@media print {
+  body { background: #fff !important; }
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; color: #000; }
+  .print-area .panel { background: #fff; border: 0; box-shadow: none; color: #000; }
+  .print-area .neto span:last-child { color: #000; }
+  .no-print { display: none !important; }
+}

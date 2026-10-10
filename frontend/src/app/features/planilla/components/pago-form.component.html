@@ -1,0 +1,64 @@
+<form class="panel" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="panel-head"><h2 class="panel-title">Datos del pago</h2></div>
+
+  <div class="mb-3">
+    <label class="form-label" for="empleadoId">Empleado</label>
+    <select id="empleadoId" class="form-select" formControlName="empleadoId" [ngClass]="claseValidacion(form.controls.empleadoId)">
+      <option value="">Selecciona un empleado…</option>
+      @for (e of empleados(); track e.id) {
+        <option [value]="e.id">{{ e.nombre }} — {{ e.sueldoBase | currency: 'PEN' : 'symbol' : '1.2-2' }}</option>
+      }
+    </select>
+    @if (empleados().length === 0) {
+      <div class="form-text">Primero registra empleados en la sección «Empleados».</div>
+    }
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="fechaPago">Fecha de pago</label>
+      <input id="fechaPago" type="date" class="form-control" formControlName="fechaPago">
+    </div>
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="modalidad">Modalidad</label>
+      <select id="modalidad" class="form-select" formControlName="modalidad">
+        <option value="Mensual">Fin de mes</option>
+        <option value="Quincena">Adelanto quincenal</option>
+        <option value="Gratificacion">Gratificación (julio/diciembre)</option>
+      </select>
+    </div>
+  </div>
+
+  @switch (modalidad()) {
+    @case ('Mensual') {
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="horasExtra">Horas extra</label>
+          <input id="horasExtra" type="number" min="0" max="300" step="1" class="form-control"
+                 formControlName="horasExtra" [ngClass]="claseValidacion(form.controls.horasExtra)">
+        </div>
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="tardanzas">Tardanzas / faltas (S/)</label>
+          <input id="tardanzas" type="number" min="0" step="0.01" class="form-control"
+                 formControlName="tardanzas" [ngClass]="claseValidacion(form.controls.tardanzas)">
+        </div>
+      </div>
+      <p class="form-text">Neto = bruto − adelanto quincenal − AFP/ONP − tardanzas.</p>
+    }
+    @case ('Gratificacion') {
+      <div class="mb-3">
+        <label class="form-label" for="mesesComputables">Meses computables (1 a 6)</label>
+        <input id="mesesComputables" type="number" min="1" max="6" step="1" class="form-control"
+               formControlName="mesesComputables" [ngClass]="claseValidacion(form.controls.mesesComputables)">
+      </div>
+    }
+    @default {
+      <p class="form-text">Adelanto quincenal: 40 % del sueldo básico, sin descuentos de ley.</p>
+    }
+  }
+
+  <div class="d-flex gap-2 mt-2">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || guardando()">Procesar y emitir boleta</button>
+    <button type="button" class="btn btn-outline-secondary" (click)="limpiar()">Nuevo pago</button>
+  </div>
+</form>

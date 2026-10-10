@@ -1,83 +1,210 @@
-# Employee Payroll Management 💼
+# Nómina — Gestión de Planillas
 
-Sistema de planillas (nómina) de una sola página, construido con **JavaScript puro (Vanilla JS)**, **HTML5** y **CSS3** — sin frameworks ni librerías externas. Simula cómo un área de Recursos Humanos registraría empleados, calcularía sus descuentos y generaría boletas de pago, con un dashboard gerencial en vivo.
+Plataforma web para registrar empleados, calcular pagos (quincena, fin de mes y gratificación) y emitir boletas.
+Proyecto del curso **JavaScript Avanzado**, diseñado como un producto escalable: backend en **Node.js + Express + TypeScript**
+(arquitectura hexagonal por módulos, base de datos SQLite) y frontend en **Angular 22** con **Bootstrap 5.3**.
 
-Proyecto desarrollado como práctica integradora del curso de **JavaScript Avanzado**, aplicando los temas vistos a lo largo de 4 semanas de clase.
-
-## ✨ Características
-
-- **Registro de empleados** con validación en tiempo real (nombre, DNI, sueldo, régimen de pensión).
-- **Lista de empleados** filtrable por cargo y por rango salarial.
-- **Boleta de pago** generada dinámicamente, con desglose de ingresos, descuentos (AFP/ONP, EsSalud, Impuesto a la Renta) y sueldo neto.
-- **Impresión de boleta** aislada (solo el tiquet, con el logo y datos de la empresa — no imprime el resto de la pantalla).
-- **Dashboard gerencial en tiempo real**: total bruto pagado, total de descuentos, total neto, distribución de empleados por régimen (AFP/ONP), y empleado con mayor/menor sueldo — todo interactivo (haz clic en una barra o en una tarjeta para filtrar o ver el detalle).
-- **Configuración editable**: tasas de AFP, ONP, EsSalud, Impuesto a la Renta, valor de la hora extra, y datos de la empresa (nombre y RUC).
-- **Persistencia local** con `localStorage` — los datos no se pierden al recargar la página.
-- **Exportación** de la planilla completa a un archivo `.json`.
-- Diseño **responsive** y **dark UI**, con fotos de perfil generadas automáticamente por empleado.
-
-## 🖥️ Vista previa
-
-La pantalla principal muestra tres secciones simultáneas: registro y lista de empleados, boleta de pago en vivo, y dashboard — todo sincronizado en tiempo real. Un menú lateral permite navegar a vistas ampliadas de cada sección (Lista, Boletas, Dashboard, Configuración).
-
-## 🛠️ Tecnologías
-
-| Tecnología | Uso |
+| | Tecnología |
 |---|---|
-| **HTML5** | Estructura semántica de la aplicación |
-| **CSS3** | Diseño dark UI, grid/flexbox, responsive, estilos de impresión (`@media print`) |
-| **JavaScript (ES6+)** | Toda la lógica de negocio, sin frameworks ni dependencias |
+| Backend | Node.js ≥ 22.18, Express 5, TypeScript 6, Zod 4, Helmet 8, SQLite (`node:sqlite`, sin dependencias nativas) |
+| Frontend | Angular 22 (standalone components, signals, control flow), RxJS 7.8, Bootstrap 5.3, tipografías Manrope y Source Serif 4 |
+| Pruebas | `node:test` (backend) y Vitest vía `ng test` (frontend) |
 
-## 📂 Estructura del proyecto
+---
+
+## 🔹 Unidad 1 — Primera versión
+
+SPA en JavaScript puro (HTML + CSS + JS, sin frameworks) con datos en `localStorage`. Permitía:
+
+- Registrar empleados con validación en tiempo real (nombre, DNI, sueldo, AFP/ONP) y filtrarlos por cargo y rango salarial.
+- Procesar pagos y emitir boletas (adelanto quincenal y fin de mes) con impresión aislada.
+- Ver un dashboard (totales, distribución AFP/ONP, mayor/menor sueldo), configurar tasas y exportar a `.json`.
+
+Conceptos aplicados: tipos de datos y control de flujo, `Math`, cadenas y expresiones regulares, clases y arreglos
+(`map`, `filter`, `reduce`), `Map`/`Set`, `JSON` y eventos del DOM. Su **identidad visual** («Ink + amber ledger»: fondo
+tinta `#0a0c11`, acento ámbar `#e0b04a`) se conserva en la Unidad 2.
+
+> El código de esa versión ya no forma parte del árbol del proyecto: está en el historial de git
+> (`git show dda68cd:index.html`, o `git checkout dda68cd -- index.html css js` para recuperarlo).
+
+---
+
+## 🔹 Unidad 2 — Node.js, TypeScript y Angular
+
+**Logro:** aplicar los frameworks Node.js y Angular en una solución web integral y profesional de calculadora y gestión de planillas.
+
+### Estructura del repositorio
 
 ```
-payroll/
-├── index.html          # Estructura de la aplicación (todas las vistas)
-├── css/
-│   └── style.css       # Estilos (dark theme, layout, impresión)
-├── js/
-│   └── app.js          # Lógica: clases, cálculos, validaciones, render, localStorage
-├── assets/              # Recursos estáticos adicionales (opcional)
-└── README.md
+calculadora_de_nomina_planillas/
+├── backend/                         API REST
+│   ├── src/
+│   │   ├── main.ts                  Arranque (config, BD, servidor, apagado ordenado)
+│   │   ├── app.ts                   Fábrica de Express: seguridad, rutas, errores
+│   │   ├── container.ts             Raíz de composición (conecta puertos con adaptadores)
+│   │   ├── shared/                  Núcleo compartido: config, errores, HTTP, SQLite, utilidades
+│   │   └── modules/
+│   │       ├── empleados/           ┐
+│   │       ├── planilla/            │  cada módulo = 4 capas:
+│   │       ├── configuracion/       │  domain · application · infrastructure · presentation
+│   │       └── dashboard/           ┘
+│   ├── tests/                       Pruebas
+│   └── scripts/seed.ts              Datos de ejemplo
+├── frontend/                        SPA Angular
+│   └── src/
+│       ├── styles/                  Tokens de diseño, tema de Bootstrap, layout, componentes, impresión
+│       └── app/
+│           ├── core/                Infraestructura única: layout, interceptor HTTP, toasts, token de API
+│           ├── shared/              Reutilizable y sin lógica de negocio: ui, pipes, validadores, tipos
+│           └── features/            Una carpeta por funcionalidad (carga diferida)
+│               └── <feature>/       data-access · components · pages · <feature>.routes.ts
+└── docs/nomina-api.postman_collection.json
 ```
 
-## 🚀 Cómo ejecutarlo
+### Backend — arquitectura hexagonal (puertos y adaptadores)
 
-No requiere instalación ni servidor. Basta con abrir el archivo directamente en el navegador:
+```
+presentation  →  application  →  domain  ←  infrastructure
+(HTTP, rutas)    (casos de uso,   (reglas,    (SQLite)
+                  DTOs Zod)        puertos)
+```
+
+- **domain**: entidades y reglas de negocio puras (por ejemplo `calculo-planilla.ts`) y los *puertos* (`*.repository.ts`, interfaces). No importa Express, Zod ni la base de datos.
+- **application**: casos de uso (`*.service.ts`) y validación de entradas (`*.dto.ts`, esquemas Zod). Dependen solo de los puertos.
+- **infrastructure**: adaptadores que implementan los puertos (`sqlite-*.repository.ts`).
+- **presentation**: controladores y rutas Express; traducen HTTP ↔ casos de uso.
+- `container.ts` es el único lugar donde se instancian los adaptadores: **cambiar de SQLite a PostgreSQL implica escribir nuevos repositorios y modificar esa sola función**.
+- Las migraciones de esquema están versionadas (`shared/infrastructure/sqlite/migraciones.ts`, `PRAGMA user_version`): para evolucionar la base de datos se agrega un elemento nuevo, sin editar los anteriores.
+
+**Cómo agregar un módulo nuevo (por ejemplo «asistencia»)**
+
+1. Crear `backend/src/modules/asistencia/{domain,application,infrastructure,presentation}`.
+2. Definir la entidad y el puerto en `domain`, el caso de uso y los DTOs en `application`, el adaptador SQLite en `infrastructure` y el router en `presentation`.
+3. Agregar la migración (tabla) en `migraciones.ts`, instanciarlo en `container.ts` y montar su router en `app.ts`.
+
+### Frontend — arquitectura por funcionalidades
+
+- **`core/`** se carga una vez (shell, interceptor, notificaciones). **`shared/`** contiene piezas genéricas sin conocimiento del dominio. **`features/`** agrupa todo lo de una funcionalidad.
+- Cada feature se divide en: `data-access/` (modelos, cliente HTTP `*.api.ts` y **store con signals** `*.store.ts`), `components/` (presentación: reciben `input()` y emiten `output()`), `pages/` (contenedores que orquestan) y `*.routes.ts` (rutas con *lazy loading*; el store se provee a nivel de ruta).
+- **Reglas de dependencia:** `shared` no importa de `features`; una feature solo puede usar el `data-access` de otra (p. ej. `planilla` consulta empleados a través de `EmpleadosApi`); nunca sus componentes.
+- La URL de la API se inyecta mediante el token `API_BASE_URL`, y el estado de servidor vive en los stores, no en los componentes.
+
+### Diseño visual
+
+Se conservan los colores y las tipografías de la primera versión: paneles `#12161f` sobre fondo `#0a0c11`, acento ámbar `#e0b04a`,
+éxito `#3dbe8c`, peligro `#e86b5a`; títulos en *Source Serif 4* y texto en *Manrope* (autoalojadas con `@fontsource`, sin pedir nada a
+Google). Los tokens están en `frontend/src/styles/tokens.css` y se mapean a las variables de Bootstrap en `bootstrap-theme.css`,
+de modo que cambiar la marca para un cliente implica editar un solo archivo.
+
+### Cumplimiento del temario
+
+| Tema | Dónde se aplica |
+|---|---|
+| Node.js (concepto, instalación, ejecución por consola) | `backend/`: `npm run dev` / `npm start`; Node ≥ 22.18 |
+| TypeScript | Backend y frontend en modo `strict`; compilación con `tsc` (`npm run build`); `tsconfig` con `nodenext` |
+| Angular: proyecto modular | `frontend/` con componentes *standalone* por feature, carga diferida con `loadChildren` / `loadComponent` |
+| Directivas de atributo | `[ngClass]` (validación, badges, estados) y `[ngStyle]` (barras del dashboard, tamaño de fuente en la guía) |
+| Directivas estructurales | La aplicación usa `@if / @for / @switch` (reemplazo oficial); `/guia/directivas` muestra `*ngIf`, `*ngFor`, `[ngSwitch]` clásicos* |
+| Bootstrap | 5.3 (última estable; Bootstrap 6 sigue en alfa): grid, formularios, botones, badges, progress, re-tematizado con tokens |
+| Navegación / rutas | `provideRouter`, `loadChildren`, `routerLink`, `routerLinkActive`, `<router-outlet>`, `title` por ruta, comodín `**`, query params enlazados a inputs (`/empleados?regimen=AFP`) |
+| Componentes | `shell`, `sidebar`, `page-header`, `icon`, `boleta`, `empleado-form/filtros/lista`, `pago-form` … |
+| Pipes | Nativos: `currency` (PEN), `date`, `percent`, `uppercase`, `titlecase`. Propios: `iniciales`, `enmascararDni`, `modalidadLabel` (con pruebas). Locale `es-PE` |
+| Formularios | *Reactive Forms* tipados (`NonNullableFormBuilder`), validadores, validador de grupo, mensajes por campo |
+| Back-end REST en JSON | Express 5 con `GET/POST/PUT/DELETE`, `{ "data": … }` / `{ "error": … }`, códigos 200/201/204/400/404/409 |
+| Herramientas de prueba | `docs/nomina-api.postman_collection.json` (Postman / Insomnia) |
+| Servicios + HttpClient + RxJS | Clientes `*.api.ts`, stores con `toObservable` + `switchMap`, `debounceTime`, `combineLatest`, `catchError`, `finalize`; interceptor funcional de errores |
+| Integración | «Procesar pago»: formulario reactivo + vista previa en vivo (`POST /pagos/simular`) + boleta + rutas |
+
+\* `*ngIf`/`*ngFor` están *deprecated* desde Angular 20. Si una versión futura los elimina, basta borrar `features/guia`.
+
+### Reglas de negocio
+
+**Heredadas de la Unidad 1 (sección 5 de las especificaciones):**
+
+| Modalidad | Fórmula |
+|---|---|
+| Adelanto quincenal | `Neto = 40 % × Sueldo básico` (sin descuentos de ley) |
+| Fin de mes | `Bruto = Básico + Horas extra × Valor hora` · `Neto = Bruto − Adelanto (40 %) − (AFP\|ONP) × Bruto − Tardanzas` (mínimo 0) |
+| Estimación (lista/dashboard) | `Neto = Sueldo − (AFP\|ONP + EsSalud 9 % + Impuesto 5 %)` |
+
+Tasas por defecto: AFP 12 %, ONP 13 %, EsSalud 9 %, impuesto 5 %, hora extra S/ 10.00 (editables en *Configuración*).
+
+**Ampliaciones de la Unidad 2** (no cambian lo anterior mientras no se usen):
+
+| Concepto | Regla |
+|---|---|
+| Asignación familiar | Si «tiene hijos», se suma al bruto: S/ 113 (10 % de la RMV de S/ 1 130) |
+| Gratificación | `(sueldo + asignación) × meses/6` + 9 % de bonificación extraordinaria; sin descuentos de pensión |
+| 5.ª categoría | Opcional (apagada por defecto). Proyección anual − 7 UIT (UIT 2026 = S/ 5 500); tramos 8/14/17/20/30 % hasta 5/20/35/45 UIT; retención mensual = impuesto anual ÷ 12 (método simplificado) |
+
+> ⚠️ **Contrasta con tus diapositivas.** Las ampliaciones usan la normativa peruana de 2026; las PPT no estaban en el ZIP.
+> Si difieren, ajusta `backend/src/modules/planilla/domain/calculo-planilla.ts` y la *Configuración*; las pruebas indicarán el impacto.
+
+### API REST (`/api/v1`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/health` | Estado del servicio |
+| GET · POST | `/empleados` | Listar (filtros `cargo`, `regimen`, `min`, `max`) · Crear (201) |
+| GET · PUT · DELETE | `/empleados/:id` | Detalle · Actualizar · Eliminar (204) |
+| GET · POST | `/pagos` | Historial (`fecha`, `q`) · Calcular y emitir boleta (201) |
+| POST | `/pagos/simular` | Calcular sin guardar |
+| GET · DELETE | `/pagos/:id` | Detalle · Eliminar boleta (204) |
+| GET · PUT | `/configuracion` | Leer · Actualizar tasas y datos de empresa |
+| GET | `/dashboard` | Totales, distribución por régimen, mayor/menor sueldo |
+| DELETE | `/datos` | Borra empleados y boletas (204) |
+
+Errores: `{ "error": { "code": "VALIDACION", "message": "…", "details": [{ "campo": "dni", "mensaje": "…" }] } }`.
+
+### Seguridad y calidad
+
+- **Entradas:** Zod con `strictObject` (rechaza campos desconocidos; valida tipos, rangos, UUID y fechas ISO) y sanitización de texto libre.
+- **SQL:** consultas parametrizadas (nunca se concatenan datos del usuario); comodines de `LIKE` escapados; restricciones `CHECK`/`UNIQUE` en la base.
+- **Errores:** manejador central; los errores inesperados devuelven un mensaje genérico y el detalle solo se registra en el servidor.
+- **HTTP:** Helmet, `x-powered-by` desactivado, CORS con lista de orígenes, límite de peticiones por IP, cuerpo JSON ≤ 10 kB, log de accesos sin query string.
+- **Datos:** SQLite en modo WAL con `busy_timeout`, transacciones para operaciones multi-tabla, apagado ordenado que cierra la base.
+- **Frontend:** Angular escapa toda interpolación; el DNI se muestra enmascarado; no hay secretos en el cliente.
+- **Dependencias:** versiones estables recientes con rangos `^`; verifica con `npm audit` y `npm outdated` antes de cada entrega.
+
+### Instalación y ejecución
+
+**Requisitos:** Node.js ≥ 22.18 (Angular 22 exige Node 22, 24 o 26 y TypeScript 6) y npm.
 
 ```bash
-git clone https://github.com/tu-usuario/employee-payroll-management.git
-cd employee-payroll-management
+# 1) Dependencias (desde la raíz)
+npm run install:all
+
+# 2) Backend — terminal 1
+cd backend
+cp .env.example .env            # Windows: copy .env.example .env
+npm run seed                    # opcional: 3 empleados de ejemplo
+npm run dev                     # http://localhost:3000/api/v1/health
+
+# 3) Frontend — terminal 2
+cd frontend
+npm start                       # http://localhost:4200  (ng serve con proxy /api → :3000)
 ```
 
-Luego abre `index.html` con doble clic, o sírvelo con cualquier servidor estático:
+Producción:
 
 ```bash
-python3 -m http.server 8000
-# abrir http://localhost:8000
+cd backend  && npm run build && npm start     # compila a dist/ y ejecuta
+cd frontend && npm run build                  # genera dist/ para un servidor estático
 ```
 
-## 📚 Conceptos de JavaScript aplicados
+Sirve el frontend y la API bajo el mismo dominio (proxy inverso), o cambia `apiUrl` en `frontend/src/environments/environment.ts`
+y agrega el origen en `CORS_ORIGINS`. La base de datos es el archivo `backend/data/nomina.db` (respáldalo con `.backup` de SQLite o copiando el archivo con el servidor detenido).
 
-Este proyecto fue diseñado para poner en práctica, de forma integrada, los temas cubiertos durante el curso:
+**Pruebas y auditoría**
 
-- **Semana 1** — Tipos de datos, estructuras de control (`if`, `switch`, `try/catch`), funciones, eventos del DOM (`addEventListener`, `submit`, `input`, `click`).
-- **Semana 2** — Operadores matemáticos y de asignación, el objeto `Math` (`round`, `max`), cálculo de sueldos y descuentos.
-- **Semana 3** — Manejo de cadenas y expresiones regulares (validación de nombre y DNI), *template literals* para renderizar la UI dinámicamente.
-- **Semana 4** — Clases y objetos (`Empleado`, `Planilla`), arreglos y sus métodos (`forEach`, `map`, `filter`, `find`, `reduce`), `Map`/`Set`, `JSON.stringify`/`JSON.parse` para la persistencia.
+```bash
+cd backend  && npm test && npm run typecheck && npm run audit:prod
+cd frontend && npm test -- --watch=false && npm run audit:prod
+```
 
-## ⚙️ Configuración por defecto
+**Probar la API:** importa `docs/nomina-api.postman_collection.json` en Postman o Insomnia (`baseUrl = http://localhost:3000/api/v1`).
 
-| Parámetro | Valor por defecto |
-|---|---|
-| Tasa AFP | 12% |
-| Tasa ONP | 13% |
-| Tasa EsSalud | 9% |
-| Impuesto a la Renta | 5% |
-| Valor hora extra | $10.00 |
+### Próximos pasos sugeridos para escalar
 
-Todos estos valores son editables desde la sección **Configuración** de la aplicación.
-
-## 📄 Licencia
-
-Proyecto académico de uso libre para fines educativos.
+Autenticación y roles (JWT + guards de rutas en Angular), multiempresa, migración a PostgreSQL (nuevos adaptadores de repositorio),
+documentación OpenAPI, CI con `npm audit` y pruebas, y despliegue con contenedores.

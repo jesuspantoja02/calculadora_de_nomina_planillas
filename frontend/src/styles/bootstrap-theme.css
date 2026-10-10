@@ -1,0 +1,94 @@
+/* Bootstrap 5.3 re-tematizado con los tokens del proyecto */
+[data-bs-theme='dark'] {
+  --bs-body-bg: var(--bg);
+  --bs-body-bg-rgb: 10, 12, 17;
+  --bs-body-color: var(--text);
+  --bs-body-font-family: var(--font);
+  --bs-body-font-size: 0.9rem;
+  --bs-emphasis-color: var(--text);
+  --bs-secondary-color: var(--text-muted);
+  --bs-secondary-bg: var(--panel-2);
+  --bs-tertiary-bg: var(--panel);
+  --bs-border-color: var(--border);
+  --bs-heading-color: var(--text);
+  --bs-link-color: var(--accent);
+  --bs-link-hover-color: var(--accent-hover);
+  --bs-link-color-rgb: 224, 176, 74;
+  --bs-primary: var(--accent);
+  --bs-primary-rgb: 224, 176, 74;
+  --bs-success-rgb: 61, 190, 140;
+  --bs-danger-rgb: 232, 107, 90;
+  --bs-warning-rgb: 224, 176, 74;
+  --bs-info-rgb: 91, 141, 239;
+  --bs-form-valid-color: var(--success);
+  --bs-form-valid-border-color: var(--success);
+  --bs-form-invalid-color: var(--danger);
+  --bs-form-invalid-border-color: var(--danger);
+}
+
+.form-control, .form-select {
+  background-color: var(--field);
+  border-color: var(--field-border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+}
+.form-control:focus, .form-select:focus {
+  background-color: var(--field);
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.form-control::placeholder { color: var(--text-faint); }
+.form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.3rem; }
+.form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+.form-check-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.form-text { color: var(--text-faint); }
+
+.btn { border-radius: var(--radius-sm); font-weight: 600; }
+.btn-primary {
+  --bs-btn-color: var(--accent-ink);
+  --bs-btn-bg: var(--accent);
+  --bs-btn-border-color: var(--accent);
+  --bs-btn-hover-color: var(--accent-ink);
+  --bs-btn-hover-bg: var(--accent-hover);
+  --bs-btn-hover-border-color: var(--accent-hover);
+  --bs-btn-active-color: var(--accent-ink);
+  --bs-btn-active-bg: var(--accent-hover);
+  --bs-btn-active-border-color: var(--accent-hover);
+  --bs-btn-disabled-color: var(--accent-ink);
+  --bs-btn-disabled-bg: var(--accent);
+  --bs-btn-disabled-border-color: var(--accent);
+  --bs-btn-focus-shadow-rgb: 224, 176, 74;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--accent);
+  --bs-btn-border-color: rgba(224, 176, 74, 0.45);
+  --bs-btn-hover-color: var(--accent-ink);
+  --bs-btn-hover-bg: var(--accent);
+  --bs-btn-hover-border-color: var(--accent);
+  --bs-btn-active-color: var(--accent-ink);
+  --bs-btn-active-bg: var(--accent);
+  --bs-btn-active-border-color: var(--accent);
+  --bs-btn-focus-shadow-rgb: 224, 176, 74;
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--text-muted);
+  --bs-btn-border-color: var(--field-border);
+  --bs-btn-hover-color: var(--text);
+  --bs-btn-hover-bg: rgba(255, 255, 255, 0.05);
+  --bs-btn-hover-border-color: var(--field-border);
+  --bs-btn-active-bg: rgba(255, 255, 255, 0.08);
+  --bs-btn-active-color: var(--text);
+}
+.btn-outline-danger {
+  --bs-btn-color: var(--danger);
+  --bs-btn-border-color: rgba(232, 107, 90, 0.4);
+  --bs-btn-hover-bg: var(--danger);
+  --bs-btn-hover-border-color: var(--danger);
+  --bs-btn-hover-color: #fff;
+}
+.badge { font-weight: 700; letter-spacing: 0.02em; }
+.alert { border-radius: var(--radius-md); }
+.table { --bs-table-bg: transparent; --bs-table-border-color: var(--border); }
+.progress { background: var(--field); border-radius: 99px; height: 8px; }
+.list-group { --bs-list-group-bg: transparent; --bs-list-group-border-color: var(--border); --bs-list-group-color: var(--text); }

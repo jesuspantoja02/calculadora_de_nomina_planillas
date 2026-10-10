@@ -1,0 +1,86 @@
+<app-page-header eyebrow="Operación" titulo="Dashboard" descripcion="Totales de la planilla, distribución por régimen y extremos salariales." />
+
+@if (resumen(); as r) {
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="panel h-100">
+        <div class="stat-label">Total bruto registrado</div>
+        <div class="stat-value">{{ r.totales.bruto | currency: 'PEN' : 'symbol' : '1.2-2' }}</div>
+        <div class="progress mt-2" role="progressbar" aria-label="Bruto">
+          <div class="progress-bar" [ngStyle]="{ 'width.%': r.totales.bruto > 0 ? 100 : 0, background: 'var(--accent)' }"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="panel h-100">
+        <div class="stat-label">Total descuentos</div>
+        <div class="stat-value" style="color: var(--danger)">{{ r.totales.descuentos | currency: 'PEN' : 'symbol' : '1.2-2' }}</div>
+        <div class="progress mt-2" role="progressbar" aria-label="Descuentos">
+          <div class="progress-bar" [ngStyle]="{ 'width.%': proporciones().descuentos, background: 'var(--danger)' }"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="panel h-100">
+        <div class="stat-label">Total neto</div>
+        <div class="stat-value" style="color: var(--success)">{{ r.totales.neto | currency: 'PEN' : 'symbol' : '1.2-2' }}</div>
+        <div class="progress mt-2" role="progressbar" aria-label="Neto">
+          <div class="progress-bar" [ngStyle]="{ 'width.%': proporciones().neto, background: 'var(--success)' }"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="panel h-100">
+        <h2 class="panel-title mb-3">Empleados por régimen <span class="count">{{ r.totalEmpleados }}</span></h2>
+        <a class="d-block text-decoration-none mb-3" [routerLink]="['/empleados']" [queryParams]="{ regimen: 'AFP' }">
+          <div class="d-flex justify-content-between small mb-1"><span>AFP</span><span>{{ r.regimen.afp / 100 | percent }}</span></div>
+          <div class="progress"><div class="progress-bar" [ngStyle]="{ 'width.%': r.regimen.afp, background: 'var(--info)' }"></div></div>
+        </a>
+        <a class="d-block text-decoration-none" [routerLink]="['/empleados']" [queryParams]="{ regimen: 'ONP' }">
+          <div class="d-flex justify-content-between small mb-1"><span>ONP</span><span>{{ r.regimen.onp / 100 | percent }}</span></div>
+          <div class="progress"><div class="progress-bar" [ngStyle]="{ 'width.%': r.regimen.onp, background: 'var(--accent)' }"></div></div>
+        </a>
+        <small class="text-secondary d-block mt-3">Clic en una barra para filtrar la lista de empleados.</small>
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="panel h-100">
+        <div class="stat-label mb-2">Mayor sueldo neto</div>
+        @if (r.mayorSueldo; as m) {
+          <div class="d-flex align-items-center gap-2">
+            <span class="avatar">{{ m.nombre | iniciales }}</span>
+            <div class="min-w-0"><div class="fw-semibold text-truncate">{{ m.nombre | titlecase }}</div><small class="text-secondary">{{ m.cargo }} · {{ m.regimen }}</small></div>
+          </div>
+          <div class="stat-value mt-2">{{ m.neto | currency: 'PEN' : 'symbol' : '1.2-2' }}</div>
+        } @else {
+          <p class="text-secondary mb-0">Sin datos todavía.</p>
+        }
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="panel h-100">
+        <div class="stat-label mb-2">Menor sueldo neto</div>
+        @if (r.menorSueldo; as m) {
+          <div class="d-flex align-items-center gap-2">
+            <span class="avatar">{{ m.nombre | iniciales }}</span>
+            <div class="min-w-0"><div class="fw-semibold text-truncate">{{ m.nombre | titlecase }}</div><small class="text-secondary">{{ m.cargo }} · {{ m.regimen }}</small></div>
+          </div>
+          <div class="stat-value mt-2">{{ m.neto | currency: 'PEN' : 'symbol' : '1.2-2' }}</div>
+        } @else {
+          <p class="text-secondary mb-0">Sin datos todavía.</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <p class="text-secondary small mt-3 mb-0">
+    Boletas emitidas: {{ r.totalBoletas }}. Los totales usan la estimación mensual por empleado (AFP/ONP + EsSalud + impuesto) sobre el sueldo básico.
+  </p>
+} @else {
+  <div class="panel empty">Cargando resumen…</div>
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+out-tsc/
+.angular/
+backend/.env
+backend/data/*.json
+backend/data/*.tmp
+*.log
+.DS_Store
+backend/data/*.db
+backend/data/*.db-wal
+backend/data/*.db-shm

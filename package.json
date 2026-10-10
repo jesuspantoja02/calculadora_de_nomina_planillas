@@ -1,0 +1,13 @@
+{
+  "name": "calculadora-de-nomina-planillas",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Monorepo: API REST (Node.js + Express + TypeScript) y SPA Angular para planillas y nómina",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend start",
+    "test": "npm --prefix backend test && npm --prefix frontend test -- --watch=false",
+    "audit:all": "npm --prefix backend run audit:prod && npm --prefix frontend run audit:prod"
+  }
+}

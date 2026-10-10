@@ -1,0 +1,53 @@
+<app-page-header eyebrow="Operación" titulo="Boletas de pago" descripcion="Historial de boletas emitidas. Filtra por fecha, nombre o DNI." />
+
+<form class="panel mb-4" [formGroup]="filtros">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label" for="fecha">Fecha de pago</label>
+      <input id="fecha" type="date" class="form-control" formControlName="fecha">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="q">Nombre o DNI</label>
+      <input id="q" type="search" maxlength="60" class="form-control" formControlName="q" placeholder="Buscar…" autocomplete="off">
+    </div>
+    <div class="col-md-3">
+      <button type="button" class="btn btn-outline-secondary w-100" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  </div>
+</form>
+
+<div class="row g-4">
+  <section class="col-xl-5">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Boletas emitidas <span class="count">{{ store.items().length }}</span></h2>
+      </div>
+      @for (p of store.items(); track p.id) {
+        <div class="row-item clickable" [class.selected]="store.seleccionada()?.id === p.id" (click)="store.seleccionar(p)">
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold text-truncate">{{ p.nombre }}</div>
+            <small class="text-secondary">DNI {{ p.dni | enmascararDni }} · {{ p.fechaPago | date: 'dd/MM/yyyy' }}</small>
+          </div>
+          <div class="text-end">
+            <div class="fw-semibold">{{ p.neto | currency: 'PEN' : 'symbol' : '1.2-2' }}</div>
+            <span class="badge text-bg-secondary">{{ p.modalidad | modalidadLabel }}</span>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-danger" [attr.aria-label]="'Eliminar boleta de ' + p.nombre"
+                  (click)="$event.stopPropagation(); eliminar(p)">
+            <app-icon nombre="trash" />
+          </button>
+        </div>
+      } @empty {
+        <p class="empty">No hay boletas que coincidan con los filtros.</p>
+      }
+    </div>
+  </section>
+
+  <section class="col-xl-7">
+    @if (store.seleccionada(); as p) {
+      <app-boleta [boleta]="p" />
+    } @else {
+      <div class="panel empty">Selecciona una boleta de la lista para verla.</div>
+    }
+  </section>
+</div>
