@@ -14,7 +14,12 @@ export class SqliteConfiguracionRepository implements ConfiguracionRepository, M
       | { datos: string }
       | undefined;
     const guardada = fila ? (JSON.parse(fila.datos) as Partial<Configuracion>) : {};
-    return { ...CONFIG_POR_DEFECTO, ...guardada };
+    const config = { ...CONFIG_POR_DEFECTO };
+    for (const clave of Object.keys(config) as (keyof Configuracion)[]) {
+      const valor = guardada[clave];
+      if (valor !== undefined) config[clave] = valor as never;
+    }
+    return config;
   }
 
   async guardar(config: Configuracion): Promise<void> {

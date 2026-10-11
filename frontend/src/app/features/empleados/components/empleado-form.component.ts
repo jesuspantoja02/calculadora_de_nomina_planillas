@@ -2,13 +2,14 @@ import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, input, output } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CARGOS, Regimen } from '../../../shared/models/tipos';
+import { EntradaDirective } from '../../../shared/ui/entrada.directive';
 import { claseValidacion, dniValidator, nombreValidator } from '../../../shared/validators/formularios';
 import { Empleado, EmpleadoDto } from '../data-access/empleado.model';
 
 /** Componente de presentación: no conoce HTTP ni el store, solo recibe datos y emite eventos. */
 @Component({
   selector: 'app-empleado-form',
-  imports: [ReactiveFormsModule, NgClass],
+  imports: [ReactiveFormsModule, NgClass, EntradaDirective],
   templateUrl: './empleado-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

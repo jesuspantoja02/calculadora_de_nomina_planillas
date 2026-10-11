@@ -254,7 +254,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Mensual\",\n  \"horasExtra\": 5,\n  \"tardanzas\": 20,\n  \"mesesComputables\": 6\n}",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Mensual\",\n  \"horasExtra25\": 2,\n  \"horasExtra35\": 1,\n  \"horasDescanso\": 0,\n  \"minutosTardanza\": 60,\n  \"diasFalta\": 0,\n  \"mesesComputables\": 6,\n  \"diasComputables\": 0,\n  \"afiliadoEps\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -297,7 +297,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Mensual\",\n  \"horasExtra\": 5,\n  \"tardanzas\": 20,\n  \"mesesComputables\": 6\n}",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Mensual\",\n  \"horasExtra25\": 2,\n  \"horasExtra35\": 1,\n  \"horasDescanso\": 0,\n  \"minutosTardanza\": 60,\n  \"diasFalta\": 0,\n  \"mesesComputables\": 6,\n  \"diasComputables\": 0,\n  \"afiliadoEps\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -328,7 +328,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Quincena\",\n  \"horasExtra\": 5,\n  \"tardanzas\": 20,\n  \"mesesComputables\": 6\n}",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-15\",\n  \"modalidad\": \"Quincena\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -359,7 +359,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Gratificacion\",\n  \"horasExtra\": 5,\n  \"tardanzas\": 20,\n  \"mesesComputables\": 6\n}",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-12-15\",\n  \"modalidad\": \"Gratificacion\",\n  \"mesesComputables\": 6,\n  \"afiliadoEps\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -492,7 +492,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"tasaAfp\": 12,\n  \"tasaOnp\": 13,\n  \"tasaSalud\": 9,\n  \"tasaImpuesto\": 5,\n  \"valorHoraExtra\": 10,\n  \"adelantoQuincenalPct\": 40,\n  \"asignacionFamiliar\": 113,\n  \"bonificacionExtraordinariaPct\": 9,\n  \"uit\": 5500,\n  \"aplicarQuintaCategoria\": false,\n  \"empresaNombre\": \"Mi Empresa S.A.C.\",\n  \"empresaRuc\": \"20123456789\"\n}",
+              "raw": "{\n  \"aporteAfpPct\": 10,\n  \"primaSeguroPct\": 1.37,\n  \"comisionFlujoPct\": 1.55,\n  \"tipoComisionAfp\": \"flujo\",\n  \"remuneracionMaximaAsegurable\": 12732.7,\n  \"tasaOnp\": 13,\n  \"tasaEssalud\": 9,\n  \"rmv\": 1230,\n  \"uit\": 5500,\n  \"adelantoQuincenalPct\": 40,\n  \"aplicarQuintaCategoria\": true,\n  \"empresaNombre\": \"Mi Empresa S.A.C.\",\n  \"empresaRuc\": \"20123456789\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

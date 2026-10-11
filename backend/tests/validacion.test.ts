@@ -18,6 +18,7 @@ test('Validación (Zod): pagos', () => {
   const base = { empleadoId: crypto.randomUUID(), fechaPago: '2026-10-31', modalidad: 'Mensual' };
   assert.equal(pagoSchema.safeParse(base).success, true);
   assert.equal(pagoSchema.safeParse({ ...base, fechaPago: '31/10/2026' }).success, false);
-  assert.equal(pagoSchema.safeParse({ ...base, horasExtra: -1 }).success, false);
+  assert.equal(pagoSchema.safeParse({ ...base, horasExtra25: -1 }).success, false);
+  assert.equal(pagoSchema.safeParse({ ...base, modalidad: 'CTS', diasComputables: 31 }).success, false);
   assert.equal(pagoSchema.safeParse({ ...base, modalidad: 'Otra' }).success, false);
 });

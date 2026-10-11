@@ -11,6 +11,18 @@ const nuevo = () => {
   return { db, s: construirServicios(db) };
 };
 const dto = { dni: '12345678', nombre: 'Juan Perez', cargo: 'Analista', sueldoBase: 3000, regimen: 'AFP', tieneHijos: false } as const;
+const pago = {
+  fechaPago: '2026-10-31',
+  modalidad: 'Mensual' as const,
+  horasExtra25: 0,
+  horasExtra35: 0,
+  horasDescanso: 0,
+  minutosTardanza: 0,
+  diasFalta: 0,
+  mesesComputables: 6,
+  diasComputables: 0,
+  afiliadoEps: false,
+};
 const esError = (status: number) => (e: unknown) => e instanceof AppError && e.status === status;
 
 test('CRUD de empleados, filtros y DNI duplicado (409)', async () => {
@@ -38,8 +50,8 @@ test('Actualizar con el DNI de otro empleado devuelve 409', async () => {
 test('Emitir boleta guarda una fotografía; búsqueda y dashboard', async () => {
   const { s } = nuevo();
   const e = await s.empleados.crear({ ...dto });
-  const p = await s.pagos.emitir({ empleadoId: e.id, fechaPago: '2026-10-31', modalidad: 'Mensual', horasExtra: 5, tardanzas: 20, mesesComputables: 6 });
-  assert.equal(p.neto, 1464);
+  const p = await s.pagos.emitir({ ...pago, empleadoId: e.id });
+  assert.equal(p.neto, 1412.4);
   await s.empleados.eliminar(e.id); // la boleta se conserva
   assert.equal((await s.pagos.obtener(p.id)).nombre, 'Juan Perez');
   assert.equal((await s.pagos.listar({ q: 'PEREZ' })).length, 1);
@@ -54,8 +66,8 @@ test('Simular no guarda y usa la configuración vigente', async () => {
   const { s } = nuevo();
   const e = await s.empleados.crear({ ...dto });
   const cfg = await s.configuracion.obtener();
-  await s.configuracion.actualizar({ ...cfg, tasaAfp: 10 });
-  const b = await s.pagos.simular({ empleadoId: e.id, fechaPago: '2026-10-31', modalidad: 'Mensual', horasExtra: 0, tardanzas: 0, mesesComputables: 6 });
+  await s.configuracion.actualizar({ ...cfg, aporteAfpPct: 10, primaSeguroPct: 0, comisionFlujoPct: 0, aplicarQuintaCategoria: false });
+  const b = await s.pagos.simular({ ...pago, empleadoId: e.id });
   assert.equal(b.pension, 300);
   assert.equal((await s.pagos.listar({})).length, 0);
 });
@@ -74,7 +86,7 @@ test('Dashboard: totales, régimen y extremos', async () => {
 test('Reiniciar datos borra empleados y boletas pero conserva la configuración', async () => {
   const { s } = nuevo();
   const e = await s.empleados.crear({ ...dto });
-  await s.pagos.emitir({ empleadoId: e.id, fechaPago: '2026-10-31', modalidad: 'Quincena', horasExtra: 0, tardanzas: 0, mesesComputables: 6 });
+  await s.pagos.emitir({ ...pago, empleadoId: e.id, modalidad: 'Quincena' });
   const cfg = await s.configuracion.obtener();
   await s.configuracion.actualizar({ ...cfg, empresaNombre: 'Acme SAC' });
   await s.configuracion.reiniciarDatos();

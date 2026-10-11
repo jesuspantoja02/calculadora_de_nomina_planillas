@@ -50,6 +50,5 @@ export class SidebarComponent {
   ];
   protected readonly sistema: ItemNav[] = [
     { ruta: '/configuracion', etiqueta: 'Configuración', icono: 'sliders' },
-    { ruta: '/guia/directivas', etiqueta: 'Guía de directivas', icono: 'book' },
   ];
 }

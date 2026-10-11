@@ -103,8 +103,8 @@ de modo que cambiar la marca para un cliente implica editar un solo archivo.
 | Node.js (concepto, instalación, ejecución por consola) | `backend/`: `npm run dev` / `npm start`; Node ≥ 22.18 |
 | TypeScript | Backend y frontend en modo `strict`; compilación con `tsc` (`npm run build`); `tsconfig` con `nodenext` |
 | Angular: proyecto modular | `frontend/` con componentes *standalone* por feature, carga diferida con `loadChildren` / `loadComponent` |
-| Directivas de atributo | `[ngClass]` (validación, badges, estados) y `[ngStyle]` (barras del dashboard, tamaño de fuente en la guía) |
-| Directivas estructurales | La aplicación usa `@if / @for / @switch` (reemplazo oficial); `/guia/directivas` muestra `*ngIf`, `*ngFor`, `[ngSwitch]` clásicos* |
+| Directivas de atributo | `[ngClass]` (validación, badges, estados) y `[ngStyle]` (barras del dashboard) |
+| Directivas estructurales | `@if / @for / @switch` en plantillas y layout |
 | Bootstrap | 5.3 (última estable; Bootstrap 6 sigue en alfa): grid, formularios, botones, badges, progress, re-tematizado con tokens |
 | Navegación / rutas | `provideRouter`, `loadChildren`, `routerLink`, `routerLinkActive`, `<router-outlet>`, `title` por ruta, comodín `**`, query params enlazados a inputs (`/empleados?regimen=AFP`) |
 | Componentes | `shell`, `sidebar`, `page-header`, `icon`, `boleta`, `empleado-form/filtros/lista`, `pago-form` … |
@@ -115,30 +115,25 @@ de modo que cambiar la marca para un cliente implica editar un solo archivo.
 | Servicios + HttpClient + RxJS | Clientes `*.api.ts`, stores con `toObservable` + `switchMap`, `debounceTime`, `combineLatest`, `catchError`, `finalize`; interceptor funcional de errores |
 | Integración | «Procesar pago»: formulario reactivo + vista previa en vivo (`POST /pagos/simular`) + boleta + rutas |
 
-\* `*ngIf`/`*ngFor` están *deprecated* desde Angular 20. Si una versión futura los elimina, basta borrar `features/guia`.
-
 ### Reglas de negocio
 
-**Heredadas de la Unidad 1 (sección 5 de las especificaciones):**
-
-| Modalidad | Fórmula |
-|---|---|
-| Adelanto quincenal | `Neto = 40 % × Sueldo básico` (sin descuentos de ley) |
-| Fin de mes | `Bruto = Básico + Horas extra × Valor hora` · `Neto = Bruto − Adelanto (40 %) − (AFP\|ONP) × Bruto − Tardanzas` (mínimo 0) |
-| Estimación (lista/dashboard) | `Neto = Sueldo − (AFP\|ONP + EsSalud 9 % + Impuesto 5 %)` |
-
-Tasas por defecto: AFP 12 %, ONP 13 %, EsSalud 9 %, impuesto 5 %, hora extra S/ 10.00 (editables en *Configuración*).
-
-**Ampliaciones de la Unidad 2** (no cambian lo anterior mientras no se usen):
+Cálculo en `backend/src/modules/planilla/domain/calculo-planilla.ts`, con la normativa vigente en octubre de 2026.
+Los parámetros (RMV, UIT, tasas AFP, tope asegurable) se editan en *Configuración*.
 
 | Concepto | Regla |
 |---|---|
-| Asignación familiar | Si «tiene hijos», se suma al bruto: S/ 113 (10 % de la RMV de S/ 1 130) |
-| Gratificación | `(sueldo + asignación) × meses/6` + 9 % de bonificación extraordinaria; sin descuentos de pensión |
-| 5.ª categoría | Opcional (apagada por defecto). Proyección anual − 7 UIT (UIT 2026 = S/ 5 500); tramos 8/14/17/20/30 % hasta 5/20/35/45 UIT; retención mensual = impuesto anual ÷ 12 (método simplificado) |
-
-> ⚠️ **Contrasta con tus diapositivas.** Las ampliaciones usan la normativa peruana de 2026; las PPT no estaban en el ZIP.
-> Si difieren, ajusta `backend/src/modules/planilla/domain/calculo-planilla.ts` y la *Configuración*; las pruebas indicarán el impacto.
+| Hora ordinaria | `(sueldo + asignación familiar) / 30 / 8` |
+| Hora extra 25 % / 35 % | D.S. 007-2002-TR: 125 % las dos primeras horas del día y 135 % desde la tercera |
+| Descanso o feriado | Sobretasa del 100 %; el día ya está incluido en el sueldo mensual |
+| Tardanza / falta | Minuto = ordinaria / 60. Falta = un treintavo. Reducen la base de pensión |
+| Asignación familiar | Ley 25129: 10 % de la RMV (S/ 1 230 desde el 1 de octubre de 2026) si tiene hijos |
+| AFP | 10 % de aporte + prima 1,37 % + comisión por flujo, hasta la remuneración máxima asegurable (S/ 12 732,70). La comisión sobre saldo no sale del sueldo |
+| ONP | 13 % de la remuneración, sin ese tope |
+| EsSalud | 9 % a cargo del empleador. No se descuenta al trabajador |
+| Adelanto quincenal | Porcentaje de la empresa (por defecto 40 %). La ley no lo fija y no lleva descuentos |
+| Gratificación | Ley 27735: `(sueldo + asignación) × meses/6`, sin AFP ni ONP. Bonificación Ley 30334: 9 %, o 6,75 % si está en EPS |
+| CTS | `(básico + asignación + un sexto de la gratificación) × meses/12`, más el treintavo diario. Es un depósito |
+| 5.ª categoría | 12 remuneraciones + 2 gratificaciones − 7 UIT (UIT 2026 = S/ 5 500) − aporte obligatorio a la pensión. Tramos 8/14/17/20/30 %. Retención = impuesto anual / 12 |
 
 ### API REST (`/api/v1`)
 

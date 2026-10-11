@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, startWith } from 'rxjs';
 import { EnmascararDniPipe } from '../../../shared/pipes/enmascarar-dni.pipe';
+import { EntradaDirective } from '../../../shared/ui/entrada.directive';
 import { IconComponent } from '../../../shared/ui/icon.component';
 import { PageHeaderComponent } from '../../../shared/ui/page-header.component';
 import { BoletaComponent } from '../components/boleta.component';
@@ -13,7 +14,7 @@ import { ModalidadLabelPipe } from '../pipes/modalidad-label.pipe';
 
 @Component({
   selector: 'app-boletas-page',
-  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, EnmascararDniPipe, ModalidadLabelPipe, PageHeaderComponent, BoletaComponent, IconComponent],
+  imports: [ReactiveFormsModule, CurrencyPipe, DatePipe, EnmascararDniPipe, ModalidadLabelPipe, PageHeaderComponent, BoletaComponent, IconComponent, EntradaDirective],
   templateUrl: './boletas.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

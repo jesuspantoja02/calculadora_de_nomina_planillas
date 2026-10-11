@@ -29,8 +29,20 @@
         @if (b.asignacionFamiliar > 0) {
           <div class="linea"><span>Asignación familiar</span><span>{{ b.asignacionFamiliar | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
         }
-        <div class="linea"><span>Gratificación</span><span>{{ b.gratificacion | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        <div class="linea"><span>Gratificación ({{ b.mesesComputables }} meses)</span><span>{{ b.gratificacion | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
         <div class="linea"><span>Bonificación extraordinaria</span><span>{{ b.bonificacionExtraordinaria | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        <p class="small text-secondary mb-0">Exonerada de AFP y ONP. La bonificación no es renta de quinta categoría.</p>
+      }
+      @case ('CTS') {
+        <p class="section-label">Depósito</p>
+        <div class="linea"><span>Sueldo básico</span><span>{{ b.sueldoBase | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        @if (b.asignacionFamiliar > 0) {
+          <div class="linea"><span>Asignación familiar</span><span>{{ b.asignacionFamiliar | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
+        <div class="linea"><span>Sexto de la gratificación</span><span>{{ b.gratificacion / 6 | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        <div class="linea"><span>Remuneración computable</span><span>{{ b.remuneracionComputable | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        <div class="linea"><span>Tiempo ({{ b.mesesComputables }} meses y {{ b.diasComputables }} días)</span><span>{{ b.cts | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        <p class="small text-secondary mb-0">Se deposita en la cuenta CTS. No es un pago de sueldo ni tiene descuento de pensión.</p>
       }
       @default {
         <p class="section-label">Ingresos</p>
@@ -38,26 +50,54 @@
         @if (b.asignacionFamiliar > 0) {
           <div class="linea"><span>Asignación familiar</span><span>{{ b.asignacionFamiliar | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
         }
-        <div class="linea"><span>Horas extra ({{ b.horasExtra }} h)</span><span>{{ b.ingresoExtra | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        @if (b.pagoHoras25 > 0) {
+          <div class="linea"><span>Horas extra 25 % ({{ b.horasExtra25 }} h)</span><span>{{ b.pagoHoras25 | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
+        @if (b.pagoHoras35 > 0) {
+          <div class="linea"><span>Horas extra 35 % ({{ b.horasExtra35 }} h)</span><span>{{ b.pagoHoras35 | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
+        @if (b.pagoDescanso > 0) {
+          <div class="linea"><span>Descanso o feriado ({{ b.horasDescanso }} h)</span><span>{{ b.pagoDescanso | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
+        @if (!b.pagoHoras25 && !b.pagoHoras35 && !b.pagoDescanso && b.ingresoExtra > 0) {
+          <div class="linea"><span>Horas extra ({{ b.horasExtra }} h)</span><span>{{ b.ingresoExtra | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
         <div class="linea fw-bold"><span>Sueldo bruto</span><span>{{ b.bruto | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
 
         <p class="section-label">Descuentos</p>
         <div class="linea descuento"><span>Adelanto quincenal</span><span>{{ b.adelanto | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
-        <div class="linea descuento">
-          <span>{{ b.regimen }} ({{ b.tasaPension / 100 | percent: '1.0-2' }})</span>
-          <span>{{ b.pension | currency: 'PEN' : 'symbol' : '1.2-2' }}</span>
-        </div>
-        @if (b.tardanzas > 0) {
+        @if (b.regimen === 'AFP' && b.aporteAfp != null) {
+          <div class="linea descuento"><span>AFP aporte</span><span>{{ b.aporteAfp | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+          <div class="linea descuento"><span>Prima de seguro</span><span>{{ b.primaSeguro | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+          @if (b.comisionAfp > 0) {
+            <div class="linea descuento"><span>Comisión AFP</span><span>{{ b.comisionAfp | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+          }
+        } @else {
+          <div class="linea descuento">
+            <span>{{ b.regimen }} ({{ b.tasaPension / 100 | percent: '1.0-2' }})</span>
+            <span>{{ b.pension | currency: 'PEN' : 'symbol' : '1.2-2' }}</span>
+          </div>
+        }
+        @if (b.descuentoTardanza > 0) {
+          <div class="linea descuento"><span>Tardanzas ({{ b.minutosTardanza }} min)</span><span>{{ b.descuentoTardanza | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
+        @if (b.descuentoFalta > 0) {
+          <div class="linea descuento"><span>Faltas ({{ b.diasFalta }} días)</span><span>{{ b.descuentoFalta | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
+        }
+        @if (!b.descuentoTardanza && !b.descuentoFalta && b.tardanzas > 0) {
           <div class="linea descuento"><span>Tardanzas / faltas</span><span>{{ b.tardanzas | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
         }
         @if (b.quintaCategoria > 0) {
           <div class="linea descuento"><span>Retención 5.ª categoría</span><span>{{ b.quintaCategoria | currency: 'PEN' : 'symbol' : '1.2-2' }}</span></div>
         }
+        @if (b.essaludEmpleador > 0) {
+          <p class="small text-secondary mb-0">EsSalud del empleador: {{ b.essaludEmpleador | currency: 'PEN' : 'symbol' : '1.2-2' }}. No se descuenta al trabajador.</p>
+        }
       }
     }
 
     <div class="neto">
-      <span>{{ b.modalidad === 'Quincena' ? 'Adelanto a pagar' : 'Neto a pagar' }}</span>
+      <span>{{ b.modalidad === 'Quincena' ? 'Adelanto a pagar' : b.modalidad === 'CTS' ? 'CTS a depositar' : 'Neto a pagar' }}</span>
       <span>{{ b.neto | currency: 'PEN' : 'symbol' : '1.2-2' }}</span>
     </div>
 

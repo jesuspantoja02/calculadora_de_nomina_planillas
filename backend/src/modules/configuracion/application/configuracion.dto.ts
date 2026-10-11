@@ -5,15 +5,16 @@ const soles = (max: number) => z.number().finite().min(0).max(max);
 const porcentaje = z.number().finite().min(0).max(100);
 
 export const configuracionSchema = z.strictObject({
-  tasaAfp: porcentaje,
+  aporteAfpPct: porcentaje,
+  primaSeguroPct: porcentaje,
+  comisionFlujoPct: porcentaje,
+  tipoComisionAfp: z.enum(['flujo', 'saldo']),
+  remuneracionMaximaAsegurable: soles(1_000_000),
   tasaOnp: porcentaje,
-  tasaSalud: porcentaje,
-  tasaImpuesto: porcentaje,
-  valorHoraExtra: soles(10_000),
-  adelantoQuincenalPct: porcentaje,
-  asignacionFamiliar: soles(10_000),
-  bonificacionExtraordinariaPct: porcentaje,
+  tasaEssalud: porcentaje,
+  rmv: soles(100_000),
   uit: z.number().finite().positive().max(100_000),
+  adelantoQuincenalPct: porcentaje,
   aplicarQuintaCategoria: z.boolean(),
   empresaNombre: z
     .string()

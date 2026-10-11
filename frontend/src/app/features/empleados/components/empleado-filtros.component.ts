@@ -4,12 +4,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, filter, startWith } from 'rxjs';
 import { CARGOS, Regimen } from '../../../shared/models/tipos';
+import { EntradaDirective } from '../../../shared/ui/entrada.directive';
 import { rangoSalarialValidator } from '../../../shared/validators/formularios';
 import { FiltroEmpleados } from '../data-access/empleado.model';
 
 @Component({
   selector: 'app-empleado-filtros',
-  imports: [ReactiveFormsModule, NgClass],
+  imports: [ReactiveFormsModule, NgClass, EntradaDirective],
   template: `
     <form class="row g-2 mb-3" [formGroup]="form">
       <div class="col-6 col-md-3">
@@ -28,12 +29,12 @@ import { FiltroEmpleados } from '../data-access/empleado.model';
         </select>
       </div>
       <div class="col-4 col-md-2">
-        <input type="number" class="form-control form-control-sm" placeholder="Mín" formControlName="min" aria-label="Sueldo mínimo"
-               [ngClass]="{ 'is-invalid': form.hasError('rangoInvalido') }">
+        <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-sm" placeholder="Mín" formControlName="min" aria-label="Sueldo mínimo"
+               appEntrada="decimal" [entradaMax]="1000000" [entradaDecimales]="2" [ngClass]="{ 'is-invalid': form.hasError('rangoInvalido') }">
       </div>
       <div class="col-4 col-md-2">
-        <input type="number" class="form-control form-control-sm" placeholder="Máx" formControlName="max" aria-label="Sueldo máximo"
-               [ngClass]="{ 'is-invalid': form.hasError('rangoInvalido') }">
+        <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-sm" placeholder="Máx" formControlName="max" aria-label="Sueldo máximo"
+               appEntrada="decimal" [entradaMax]="1000000" [entradaDecimales]="2" [ngClass]="{ 'is-invalid': form.hasError('rangoInvalido') }">
       </div>
       <div class="col-4 col-md-2">
         <button type="button" class="btn btn-sm btn-outline-secondary w-100" (click)="limpiar()">Limpiar</button>
@@ -80,8 +81,8 @@ export class EmpleadoFiltrosComponent {
         const f: FiltroEmpleados = {};
         if (v.cargo) f.cargo = v.cargo;
         if (v.regimen) f.regimen = v.regimen;
-        if (v.min !== null && v.min !== undefined) f.min = v.min;
-        if (v.max !== null && v.max !== undefined) f.max = v.max;
+        if (v.min !== null && v.min !== undefined && String(v.min) !== '') f.min = Number(v.min);
+        if (v.max !== null && v.max !== undefined && String(v.max) !== '') f.max = Number(v.max);
         this.cambio.emit(f);
       });
   }

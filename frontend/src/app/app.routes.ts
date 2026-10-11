@@ -10,7 +10,6 @@ export const routes: Routes = [
   { path: 'planilla', loadChildren: () => import('./features/planilla/planilla.routes').then((m) => m.PLANILLA_ROUTES) },
   { path: 'dashboard', loadChildren: () => import('./features/dashboard/dashboard.routes').then((m) => m.DASHBOARD_ROUTES) },
   { path: 'configuracion', loadChildren: () => import('./features/configuracion/configuracion.routes').then((m) => m.CONFIGURACION_ROUTES) },
-  { path: 'guia', loadChildren: () => import('./features/guia/guia.routes').then((m) => m.GUIA_ROUTES) },
   {
     path: '**',
     title: 'No encontrada · Nómina',

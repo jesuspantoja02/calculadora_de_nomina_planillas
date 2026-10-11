@@ -38,7 +38,7 @@ export class DashboardService {
     const suma = (fn: (f: (typeof filas)[number]) => number) => redondear(filas.reduce((a, f) => a + fn(f), 0));
 
     const aEmpleadoConNeto = (f: (typeof filas)[number]): EmpleadoConNeto => {
-      const { pension: _p, salud: _s, impuesto: _i, total: _t, ...resto } = f;
+      const { asignacionFamiliar: _a, bruto: _b, pension: _p, quintaCategoria: _q, essaludEmpleador: _e, total: _t, ...resto } = f;
       return resto;
     };
     const ordenados = [...filas].sort((a, b) => b.neto - a.neto);
@@ -48,7 +48,7 @@ export class DashboardService {
     return {
       totalEmpleados: total,
       totalBoletas,
-      totales: { bruto: suma((f) => f.sueldoBase), descuentos: suma((f) => f.total), neto: suma((f) => f.neto) },
+      totales: { bruto: suma((f) => f.bruto), descuentos: suma((f) => f.total), neto: suma((f) => f.neto) },
       regimen:
         total === 0
           ? { afp: 0, onp: 0 }
