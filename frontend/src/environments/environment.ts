@@ -1,4 +1,5 @@
 export const environment = {
-  /** En desarrollo, `ng serve` redirige /api al backend (proxy.conf.json). En producción, apunta a tu API o usa un proxy inverso. */
+  production: false,
+  /** En desarrollo, `ng serve` redirige /api al backend (proxy.conf.json). */
   apiUrl: '/api/v1',
 };
