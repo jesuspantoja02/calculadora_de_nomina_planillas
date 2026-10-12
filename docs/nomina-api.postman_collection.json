@@ -1,0 +1,550 @@
+{
+  "info": {
+    "name": "Nómina API v1 (Unidad 2)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "empleadoId",
+      "value": ""
+    },
+    {
+      "key": "pagoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Sistema",
+      "item": [
+        {
+          "name": "Health",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Empleados",
+      "item": [
+        {
+          "name": "Crear empleado (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('empleadoId', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"70123456\",\n  \"nombre\": \"Ana Torres Quispe\",\n  \"cargo\": \"Desarrollador\",\n  \"sueldoBase\": 4500,\n  \"regimen\": \"AFP\",\n  \"tieneHijos\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/empleados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar empleados",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/empleados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtrar empleados",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/empleados?cargo=Desarrollador&regimen=AFP&min=1000&max=6000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados"
+              ],
+              "query": [
+                {
+                  "key": "cargo",
+                  "value": "Desarrollador"
+                },
+                {
+                  "key": "regimen",
+                  "value": "AFP"
+                },
+                {
+                  "key": "min",
+                  "value": "1000"
+                },
+                {
+                  "key": "max",
+                  "value": "6000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener empleado",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/empleados/{{empleadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados",
+                "{{empleadoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar empleado (PUT)",
+          "event": [],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"70123456\",\n  \"nombre\": \"Ana Torres Quispe\",\n  \"cargo\": \"Desarrollador\",\n  \"sueldoBase\": 4800,\n  \"regimen\": \"AFP\",\n  \"tieneHijos\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/empleados/{{empleadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados",
+                "{{empleadoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar empleado (204)",
+          "event": [],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/empleados/{{empleadoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados",
+                "{{empleadoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Error de validación (400)",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dni\": \"123\",\n  \"nombre\": \"Ana Torres Quispe\",\n  \"cargo\": \"Desarrollador\",\n  \"sueldoBase\": 4500,\n  \"regimen\": \"AFP\",\n  \"tieneHijos\": true,\n  \"extra\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/empleados",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "empleados"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pagos / Boletas",
+      "item": [
+        {
+          "name": "Simular pago (no guarda)",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Mensual\",\n  \"horasExtra25\": 2,\n  \"horasExtra35\": 1,\n  \"horasDescanso\": 0,\n  \"minutosTardanza\": 60,\n  \"diasFalta\": 0,\n  \"mesesComputables\": 6,\n  \"diasComputables\": 0,\n  \"afiliadoEps\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pagos/simular",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos",
+                "simular"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emitir boleta fin de mes (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('pagoId', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-31\",\n  \"modalidad\": \"Mensual\",\n  \"horasExtra25\": 2,\n  \"horasExtra35\": 1,\n  \"horasDescanso\": 0,\n  \"minutosTardanza\": 60,\n  \"diasFalta\": 0,\n  \"mesesComputables\": 6,\n  \"diasComputables\": 0,\n  \"afiliadoEps\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pagos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emitir adelanto quincenal",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-10-15\",\n  \"modalidad\": \"Quincena\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pagos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Emitir gratificación",
+          "event": [],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empleadoId\": \"{{empleadoId}}\",\n  \"fechaPago\": \"2026-12-15\",\n  \"modalidad\": \"Gratificacion\",\n  \"mesesComputables\": 6,\n  \"afiliadoEps\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pagos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar boletas",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pagos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filtrar boletas",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pagos?fecha=2026-10-31&q=torres",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos"
+              ],
+              "query": [
+                {
+                  "key": "fecha",
+                  "value": "2026-10-31"
+                },
+                {
+                  "key": "q",
+                  "value": "torres"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Obtener boleta",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pagos/{{pagoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos",
+                "{{pagoId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar boleta (204)",
+          "event": [],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pagos/{{pagoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pagos",
+                "{{pagoId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuración y dashboard",
+      "item": [
+        {
+          "name": "Obtener configuración",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/configuracion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "configuracion"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar configuración (PUT)",
+          "event": [],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aporteAfpPct\": 10,\n  \"primaSeguroPct\": 1.37,\n  \"comisionFlujoPct\": 1.55,\n  \"tipoComisionAfp\": \"flujo\",\n  \"remuneracionMaximaAsegurable\": 12732.7,\n  \"tasaOnp\": 13,\n  \"tasaEssalud\": 9,\n  \"rmv\": 1230,\n  \"uit\": 5500,\n  \"adelantoQuincenalPct\": 40,\n  \"aplicarQuintaCategoria\": true,\n  \"empresaNombre\": \"Mi Empresa S.A.C.\",\n  \"empresaRuc\": \"20123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/configuracion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "configuracion"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Borrar empleados y boletas (204)",
+          "event": [],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/datos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "datos"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

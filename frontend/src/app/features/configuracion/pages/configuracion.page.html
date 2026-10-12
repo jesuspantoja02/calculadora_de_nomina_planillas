@@ -1,0 +1,91 @@
+<app-page-header eyebrow="Sistema" titulo="Configuración" descripcion="Datos de la empresa y parámetros legales que usa cada boleta. Las tasas de AFP son las de la SBS; cámbialas cuando publiquen un devengue nuevo." />
+
+<form class="panel" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+  <p class="section-label">Empresa</p>
+  <div class="row">
+    <div class="col-md-8 mb-3">
+      <label class="form-label" for="empresaNombre">Nombre de la empresa</label>
+      <input id="empresaNombre" type="text" class="form-control" formControlName="empresaNombre" maxlength="60" autocomplete="off"
+             appEntrada="empresa" [ngClass]="claseValidacion(form.controls.empresaNombre)">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="empresaRuc">RUC (11 dígitos)</label>
+      <input id="empresaRuc" type="text" class="form-control" formControlName="empresaRuc" maxlength="11" inputmode="numeric" autocomplete="off"
+             appEntrada="ruc" [ngClass]="claseValidacion(form.controls.empresaRuc)">
+    </div>
+  </div>
+
+  <p class="section-label">Pensión del trabajador (%)</p>
+  <div class="row">
+    <div class="col-md-3 mb-3">
+      <label class="form-label" for="aporteAfpPct">Aporte AFP</label>
+      <input id="aporteAfpPct" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="aporteAfpPct"
+             appEntrada="decimal" [entradaMax]="100" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.aporteAfpPct)">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label" for="primaSeguroPct">Prima de seguro</label>
+      <input id="primaSeguroPct" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="primaSeguroPct"
+             appEntrada="decimal" [entradaMax]="100" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.primaSeguroPct)">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label" for="comisionFlujoPct">Comisión por flujo</label>
+      <input id="comisionFlujoPct" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="comisionFlujoPct"
+             appEntrada="decimal" [entradaMax]="100" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.comisionFlujoPct)">
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label" for="tipoComisionAfp">Tipo de comisión</label>
+      <select id="tipoComisionAfp" class="form-select" formControlName="tipoComisionAfp">
+        <option value="flujo">Flujo (se descuenta del sueldo)</option>
+        <option value="saldo">Saldo (se cobra al fondo)</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="remuneracionMaximaAsegurable">Remuneración máxima asegurable (S/)</label>
+      <input id="remuneracionMaximaAsegurable" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="remuneracionMaximaAsegurable"
+             appEntrada="decimal" [entradaMax]="1000000" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.remuneracionMaximaAsegurable)">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="tasaOnp">ONP</label>
+      <input id="tasaOnp" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="tasaOnp"
+             appEntrada="decimal" [entradaMax]="100" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.tasaOnp)">
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="adelantoQuincenalPct">Adelanto quincenal (política de la empresa)</label>
+      <input id="adelantoQuincenalPct" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="adelantoQuincenalPct"
+             appEntrada="decimal" [entradaMax]="100" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.adelantoQuincenalPct)">
+    </div>
+  </div>
+
+  <p class="section-label">Empleador y parámetros (S/)</p>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="tasaEssalud">EsSalud del empleador (%)</label>
+      <input id="tasaEssalud" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="tasaEssalud"
+             appEntrada="decimal" [entradaMax]="100" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.tasaEssalud)">
+      <div class="form-text">No se descuenta al trabajador. En EPS la bonificación de gratificación usa el 75 % de esta tasa.</div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="rmv">RMV</label>
+      <input id="rmv" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="rmv"
+             appEntrada="decimal" [entradaMax]="100000" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.rmv)">
+      <div class="form-text">La asignación familiar es el 10 % de este monto (Ley 25129).</div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label class="form-label" for="uit">UIT</label>
+      <input id="uit" type="text" inputmode="numeric" autocomplete="off" class="form-control" formControlName="uit"
+             appEntrada="entero" [entradaMin]="1" [entradaMax]="100000" [ngClass]="claseValidacion(form.controls.uit)">
+    </div>
+  </div>
+
+  <div class="form-check mb-4">
+    <input id="quinta" type="checkbox" class="form-check-input" formControlName="aplicarQuintaCategoria">
+    <label class="form-check-label" for="quinta">Retener 5.ª categoría en el fin de mes (proyección de remuneración estable)</label>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || guardando()">Guardar configuración</button>
+    <button type="button" class="btn btn-outline-danger ms-auto" (click)="reiniciar()">Borrar empleados y boletas</button>
+  </div>
+</form>

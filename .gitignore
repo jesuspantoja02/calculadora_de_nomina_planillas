@@ -1,4 +1,4 @@
-# --- Dependencias y compilados ---
+# Dependencias y compilados
 node_modules/
 dist/
 out-tsc/
@@ -7,12 +7,12 @@ build/
 .vite/
 *.tsbuildinfo
 
-# --- Variables de entorno (el ejemplo .env.example sí se sube) ---
+# Secretos y entorno local (el ejemplo .env.example sí se sube)
 .env
 .env.*
 !.env.example
 
-# --- SQLite en runtime (DNI, boletas, tasas). Carpeta vacía con .gitkeep ---
+# SQLite en runtime: DNI, boletas y tasas. La carpeta se conserva con .gitkeep.
 backend/data/*
 !backend/data/.gitkeep
 *.db
@@ -22,7 +22,7 @@ backend/data/*
 *.db-shm
 *-journal
 
-# --- Logs, caché y cobertura de pruebas ---
+# Logs, caché y cobertura de pruebas
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -35,14 +35,14 @@ coverage/
 test-results/
 playwright-report/
 
-# --- Sistema operativo ---
+# Sistema operativo
 .DS_Store
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# --- Editores e IDE ---
+# Editores e IDE
 .idea/
 *.iml
 .vscode/*
@@ -52,7 +52,7 @@ $RECYCLE.BIN/
 *~
 *.suo
 
-# --- Temporales y exportaciones locales ---
+# Temporales y exportaciones locales
 *.tmp
 *.bak
 exports/

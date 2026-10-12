@@ -1,0 +1,117 @@
+<form class="panel" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="panel-head"><h2 class="panel-title">Datos del pago</h2></div>
+
+  <div class="mb-3">
+    <label class="form-label" for="empleadoId">Empleado</label>
+    <select id="empleadoId" class="form-select" formControlName="empleadoId" [ngClass]="claseValidacion(form.controls.empleadoId)">
+      <option value="">Selecciona un empleado…</option>
+      @for (e of empleados(); track e.id) {
+        <option [value]="e.id">{{ e.nombre }} — {{ e.sueldoBase | currency: 'PEN' : 'symbol' : '1.2-2' }}</option>
+      }
+    </select>
+    @if (empleados().length === 0) {
+      <div class="form-text">Primero registra empleados en la sección «Empleados».</div>
+    }
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="fechaPago">Fecha de pago</label>
+      <input id="fechaPago" type="date" class="form-control" formControlName="fechaPago">
+    </div>
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="modalidad">Modalidad</label>
+      <select id="modalidad" class="form-select" formControlName="modalidad">
+        <option value="Mensual">Fin de mes</option>
+        <option value="Quincena">Adelanto quincenal</option>
+        <option value="Gratificacion">Gratificación (julio / diciembre)</option>
+        <option value="CTS">CTS (mayo / noviembre)</option>
+      </select>
+    </div>
+  </div>
+
+  @switch (modalidad()) {
+    @case ('Mensual') {
+      <div class="row">
+        <div class="col-sm-4 mb-3">
+          <label class="form-label" for="horasExtra25">Horas extra al 25 %</label>
+          <input id="horasExtra25" type="text" inputmode="decimal" autocomplete="off" class="form-control"
+                 formControlName="horasExtra25" appEntrada="decimal" [entradaMax]="200" [entradaDecimales]="2"
+                 [ngClass]="claseValidacion(form.controls.horasExtra25)">
+        </div>
+        <div class="col-sm-4 mb-3">
+          <label class="form-label" for="horasExtra35">Horas extra al 35 %</label>
+          <input id="horasExtra35" type="text" inputmode="decimal" autocomplete="off" class="form-control"
+                 formControlName="horasExtra35" appEntrada="decimal" [entradaMax]="200" [entradaDecimales]="2"
+                 [ngClass]="claseValidacion(form.controls.horasExtra35)">
+        </div>
+        <div class="col-sm-4 mb-3">
+          <label class="form-label" for="horasDescanso">Horas en descanso o feriado</label>
+          <input id="horasDescanso" type="text" inputmode="decimal" autocomplete="off" class="form-control"
+                 formControlName="horasDescanso" appEntrada="decimal" [entradaMax]="200" [entradaDecimales]="2"
+                 [ngClass]="claseValidacion(form.controls.horasDescanso)">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="minutosTardanza">Minutos de tardanza</label>
+          <input id="minutosTardanza" type="text" inputmode="numeric" autocomplete="off" class="form-control"
+                 formControlName="minutosTardanza" appEntrada="entero" [entradaMax]="20000"
+                 [ngClass]="claseValidacion(form.controls.minutosTardanza)">
+        </div>
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="diasFalta">Días de falta</label>
+          <input id="diasFalta" type="text" inputmode="numeric" autocomplete="off" class="form-control"
+                 formControlName="diasFalta" appEntrada="entero" [entradaMax]="31"
+                 [ngClass]="claseValidacion(form.controls.diasFalta)">
+        </div>
+      </div>
+      <p class="form-text">
+        La hora vale sueldo ordinario / 240. Las dos primeras horas del día van al 25 % y desde la tercera al 35 %.
+        El descanso o feriado sin sustitutorio lleva sobretasa del 100 %. Tardanzas y faltas se descuentan por minuto y por treintavo.
+      </p>
+    }
+    @case ('Gratificacion') {
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="mesesComputables">Meses completos del semestre (0 a 6)</label>
+          <input id="mesesComputables" type="text" inputmode="numeric" autocomplete="off" class="form-control"
+                 formControlName="mesesComputables" appEntrada="entero" [entradaMax]="6"
+                 [ngClass]="claseValidacion(form.controls.mesesComputables)">
+        </div>
+        <div class="col-sm-6 mb-3 d-flex align-items-end">
+          <div class="form-check mb-2">
+            <input id="afiliadoEps" type="checkbox" class="form-check-input" formControlName="afiliadoEps">
+            <label class="form-check-label" for="afiliadoEps">Afiliado a una EPS</label>
+          </div>
+        </div>
+      </div>
+      <p class="form-text">Ley 27735: un sueldo computable por semestre, proporcional a los meses. La bonificación es 9 %, o 6,75 % si está en EPS. No tiene descuento de AFP ni ONP.</p>
+    }
+    @case ('CTS') {
+      <div class="row">
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="mesesCts">Meses completos del semestre (0 a 6)</label>
+          <input id="mesesCts" type="text" inputmode="numeric" autocomplete="off" class="form-control"
+                 formControlName="mesesComputables" appEntrada="entero" [entradaMax]="6"
+                 [ngClass]="claseValidacion(form.controls.mesesComputables)">
+        </div>
+        <div class="col-sm-6 mb-3">
+          <label class="form-label" for="diasComputables">Días del mes incompleto (0 a 30)</label>
+          <input id="diasComputables" type="text" inputmode="numeric" autocomplete="off" class="form-control"
+                 formControlName="diasComputables" appEntrada="entero" [entradaMax]="30"
+                 [ngClass]="claseValidacion(form.controls.diasComputables)">
+        </div>
+      </div>
+      <p class="form-text">Depósito de mayo (noviembre–abril) o noviembre (mayo–octubre). La remuneración computable suma un sexto de la gratificación del semestre. No se descuenta pensión.</p>
+    }
+    @default {
+      <p class="form-text">Adelanto según el porcentaje de la empresa (Configuración). La ley no fija ese porcentaje y este pago no lleva descuentos: se regularizan a fin de mes.</p>
+    }
+  }
+
+  <div class="d-flex gap-2 mt-2">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || guardando()">Procesar y emitir boleta</button>
+    <button type="button" class="btn btn-outline-secondary" (click)="limpiar()">Nuevo pago</button>
+  </div>
+</form>

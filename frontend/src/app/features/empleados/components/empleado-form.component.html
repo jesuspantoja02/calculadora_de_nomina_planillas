@@ -1,0 +1,66 @@
+<form class="panel" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+  <div class="panel-head">
+    <h2 class="panel-title">{{ empleado() ? 'Editar empleado' : 'Registrar empleado' }}</h2>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="dni">DNI</label>
+    <input id="dni" type="text" class="form-control" formControlName="dni" inputmode="numeric" maxlength="8" autocomplete="off"
+           placeholder="8 dígitos" appEntrada="dni" [ngClass]="claseValidacion(form.controls.dni)">
+    @if (form.controls.dni.invalid && (form.controls.dni.touched || form.controls.dni.dirty)) {
+      <div class="invalid-msg">El DNI debe tener exactamente 8 dígitos.</div>
+    }
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="nombre">Nombres y apellidos</label>
+    <input id="nombre" type="text" class="form-control" formControlName="nombre" maxlength="60" autocomplete="off"
+           appEntrada="nombre" [ngClass]="claseValidacion(form.controls.nombre)">
+    @if (form.controls.nombre.invalid && (form.controls.nombre.touched || form.controls.nombre.dirty)) {
+      <div class="invalid-msg">Solo letras (3 a 60 caracteres).</div>
+    }
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="cargo">Cargo</label>
+      <select id="cargo" class="form-select" formControlName="cargo" [ngClass]="claseValidacion(form.controls.cargo)">
+        <option value="">Selecciona…</option>
+        @for (c of cargos; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-sm-6 mb-3">
+      <label class="form-label" for="regimen">Sistema de pensiones</label>
+      <select id="regimen" class="form-select" formControlName="regimen" [ngClass]="claseValidacion(form.controls.regimen)">
+        <option value="">Selecciona…</option>
+        <option value="AFP">AFP</option>
+        <option value="ONP">ONP</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label" for="sueldoBase">Sueldo básico (S/)</label>
+    <input id="sueldoBase" type="text" inputmode="decimal" autocomplete="off" class="form-control" formControlName="sueldoBase"
+           appEntrada="decimal" [entradaMax]="1000000" [entradaDecimales]="2" [ngClass]="claseValidacion(form.controls.sueldoBase)">
+    @if (form.controls.sueldoBase.invalid && (form.controls.sueldoBase.touched || form.controls.sueldoBase.dirty)) {
+      <div class="invalid-msg">Ingresa un sueldo mayor que 0.</div>
+    }
+  </div>
+
+  <div class="form-check mb-4">
+    <input id="tieneHijos" type="checkbox" class="form-check-input" formControlName="tieneHijos">
+    <label class="form-check-label" for="tieneHijos">Tiene hijos menores (asignación familiar)</label>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary" [disabled]="form.invalid || guardando()">
+      {{ empleado() ? 'Guardar cambios' : 'Guardar empleado' }}
+    </button>
+    <button type="button" class="btn btn-outline-secondary" (click)="empleado() ? cancelar.emit() : limpiar()">
+      {{ empleado() ? 'Cancelar' : 'Limpiar' }}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,28 @@
+<app-page-header eyebrow="Operación" titulo="Empleados" descripcion="Alta de personal y lista de trabajadores registrados." />
+
+<div class="row g-4">
+  <section class="col-xl-5">
+    <app-empleado-form
+      [empleado]="store.editando()"
+      [guardando]="store.guardando()"
+      (guardar)="guardar($event)"
+      (cancelar)="store.editar(null)"
+    />
+  </section>
+
+  <section class="col-xl-7">
+    <div class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Empleados registrados <span class="count">{{ store.items().length }}</span></h2>
+      </div>
+      <app-empleado-filtros [regimenInicial]="regimen()" (cambio)="store.filtrar($event)" />
+      <app-empleado-lista
+        [items]="store.items()"
+        [cargando]="store.cargando()"
+        [editandoId]="store.editando()?.id ?? null"
+        (editar)="store.editar($event)"
+        (eliminar)="eliminar($event)"
+      />
+    </div>
+  </section>
+</div>
