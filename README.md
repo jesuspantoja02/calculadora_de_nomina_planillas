@@ -1,8 +1,90 @@
 # Nómina — Gestión de Planillas
 
-Plataforma web para registrar empleados, calcular pagos (quincena, fin de mes y gratificación) y emitir boletas.
-Proyecto del curso **JavaScript Avanzado**, diseñado como un producto escalable: backend en **Node.js + Express + TypeScript**
-(arquitectura hexagonal por módulos, base de datos SQLite) y frontend en **Angular 22** con **Bootstrap 5.3**.
+Calculadora y gestión de planillas para el curso **JavaScript Avanzado** (UTP). El mismo producto de negocio — empleados,
+pagos y boletas — se desarrolla en **dos unidades** para mostrar cómo escala de un prototipo en el navegador a un sistema
+**full stack** mantenible.
+
+| Unidad | Rol en el curso | Stack resumido |
+|---|---|---|
+| **Unidad 1** | Fundamentos de JavaScript, DOM y persistencia local | HTML, CSS, JavaScript (sin frameworks) |
+| **Unidad 2** | Semanas 6–9: Node.js, TypeScript, Angular y API REST | Node ≥ 22.18, Express 5, TS, Angular 22, SQLite, Bootstrap 5.3 |
+
+En el árbol actual del repositorio (rama de trabajo con la Unidad 2 completa) vive **`backend/`** y **`frontend/`**.
+La Unidad 1 se conserva en el **historial de git** (commit `dda68cd` en `main`) y se puede recuperar cuando quieras comparar
+versiones.
+
+### Evolución por unidad (qué se gana en cada paso)
+
+| Aspecto | Unidad 1 | Unidad 2 |
+|---|---|---|
+| **Ejecución** | Abrir `index.html` en el navegador | API en Node + SPA Angular (`npm run dev` / `npm start`) |
+| **Datos** | `localStorage` (solo ese equipo/navegador) | SQLite + API REST (`/api/v1`) |
+| **Código** | Un solo `js/app.js` (+ HTML/CSS) | Módulos hexagonal (backend) y features (frontend) |
+| **Cálculo de planilla** | Tasas simplificadas en clases JS | Normativa peruana (oct. 2026) en `calculo-planilla.ts` + pruebas |
+| **Validación** | En el DOM al escribir | Zod (API) + Reactive Forms + directiva `appEntrada` |
+| **Navegación** | Vistas con `data-view` y JS | Rutas Angular con lazy loading |
+| **Menú (misma idea de negocio)** | Registrar · Pago · Boletas · Dashboard · Configuración | Empleados · Procesar pago · Boletas · Dashboard · Configuración |
+| **Identidad visual** | Ink + ámbar (`#0a0c11`, `#e0b04a`) | Mismos tokens en `frontend/src/styles/tokens.css` |
+
+---
+
+## 🔹 Unidad 1 — JavaScript en el navegador
+
+**Objetivo:** demostrar lógica de nómina, interfaz y manejo de estado **sin frameworks**, como base del dominio que luego se
+refina en la Unidad 2.
+
+### Estructura (commit de referencia `dda68cd`)
+
+```
+calculadora_de_nomina_planillas/   ← Unidad 1 en git (no en el árbol actual de la Unidad 2)
+├── index.html                     SPA: sidebar + área de contenido + zona de impresión
+├── css/style.css                  Estilos (tema Ink + ámbar)
+└── js/app.js                      Toda la lógica: modelos, vistas, localStorage, cálculos
+```
+
+### Pantallas (equivalentes funcionales a la Unidad 2)
+
+| Vista (`data-view`) | Función |
+|---|---|
+| `registrar` | Alta de empleados (DNI, nombre, cargo, sueldo, AFP/ONP), lista, filtros por cargo y rango salarial |
+| `pago` | Procesar pago y emitir boleta (adelanto quincenal y fin de mes) |
+| `boletas` | Historial de boletas con filtros por fecha y búsqueda |
+| `dashboard` | Totales, distribución AFP/ONP, mayor y menor sueldo |
+| `configuracion` | Tasas (AFP, ONP, etc.), datos de empresa, exportar/importar `.json` |
+
+### Persistencia y modelo
+
+- Claves en **`localStorage`**: empleados, boletas y configuración (`CONFIG_DEFAULT` editable desde la UI).
+- Clase **`Empleado`**: sueldo base, régimen, métodos `calcularDescuentos` / `calcularNeto` con porcentajes de configuración
+  (modelo didáctico, no la normativa completa de la Unidad 2).
+
+### Conceptos de JavaScript aplicados
+
+Tipos y control de flujo, `Math`, cadenas y expresiones regulares, **clases**, arreglos (`map`, `filter`, `reduce`),
+`Map`/`Set`, `JSON`, eventos del DOM y manipulación de nodos sin recargar la página.
+
+### Cómo ver o recuperar la Unidad 1
+
+```bash
+# Solo lectura de un archivo histórico
+git show dda68cd:index.html
+
+# Copiar la Unidad 1 al directorio de trabajo (crea index.html, css/, js/)
+git checkout dda68cd -- index.html css js
+# Abrir index.html en el navegador (o servir la carpeta con un servidor estático ligero)
+```
+
+### Límites que motivan la Unidad 2
+
+Sin servidor ni base de datos no hay API compartida, respaldo centralizado ni reglas legales detalladas; el cálculo y la
+seguridad dependen solo del cliente. La Unidad 2 resuelve eso manteniendo el mismo flujo de pantallas y la misma marca visual.
+
+---
+
+## 🔹 Unidad 2 — Node.js, TypeScript y Angular
+
+**Logro:** escalar la Unidad 1 a una solución web integral (temario semanas 6–9 / proyecto integrador): persistencia,
+API REST, tipado, pruebas y normativa laboral peruana en el dominio.
 
 | | Tecnología |
 |---|---|
@@ -10,28 +92,15 @@ Proyecto del curso **JavaScript Avanzado**, diseñado como un producto escalable
 | Frontend | Angular 22 (standalone components, signals, control flow), RxJS 7.8, Bootstrap 5.3, tipografías Manrope y Source Serif 4 |
 | Pruebas | `node:test` (backend) y Vitest vía `ng test` (frontend) |
 
----
+### Flujo de usuario (continuidad con la Unidad 1)
 
-## 🔹 Unidad 1 — Primera versión
-
-SPA en JavaScript puro (HTML + CSS + JS, sin frameworks) con datos en `localStorage`. Permitía:
-
-- Registrar empleados con validación en tiempo real (nombre, DNI, sueldo, AFP/ONP) y filtrarlos por cargo y rango salarial.
-- Procesar pagos y emitir boletas (adelanto quincenal y fin de mes) con impresión aislada.
-- Ver un dashboard (totales, distribución AFP/ONP, mayor/menor sueldo), configurar tasas y exportar a `.json`.
-
-Conceptos aplicados: tipos de datos y control de flujo, `Math`, cadenas y expresiones regulares, clases y arreglos
-(`map`, `filter`, `reduce`), `Map`/`Set`, `JSON` y eventos del DOM. Su **identidad visual** («Ink + amber ledger»: fondo
-tinta `#0a0c11`, acento ámbar `#e0b04a`) se conserva en la Unidad 2.
-
-> El código de esa versión ya no forma parte del árbol del proyecto: está en el historial de git
-> (`git show dda68cd:index.html`, o `git checkout dda68cd -- index.html css js` para recuperarlo).
-
----
-
-## 🔹 Unidad 2 — Node.js, TypeScript y Angular
-
-**Logro:** aplicar los frameworks Node.js y Angular en una solución web integral y profesional de calculadora y gestión de planillas.
+| Ruta Angular | Equivalente Unidad 1 |
+|---|---|
+| `/empleados` | Vista `registrar` |
+| `/planilla/procesar-pago` | Vista `pago` |
+| `/planilla/boletas` | Vista `boletas` |
+| `/dashboard` | Vista `dashboard` |
+| `/configuracion` | Vista `configuracion` |
 
 ### Estructura del repositorio
 
